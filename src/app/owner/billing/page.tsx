@@ -404,7 +404,7 @@ export default function OwnerBillingPage() {
                 <span>Payment Method</span>
                 <select
                   value={paymentMethod}
-                  onChange={(e: any) => setPaymentMethod(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPaymentMethod(e.target.value as 'Cash' | 'UPI' | 'Card' | 'Other')}
                   className="bg-slate-950 border border-slate-700 text-white rounded-lg px-2 py-1 text-xs"
                 >
                   <option value="Cash">Cash</option>
@@ -561,7 +561,7 @@ export default function OwnerBillingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {generatedInvoice.items.map((it: any) => (
+                {generatedInvoice.items.map((it) => (
                   <tr key={it.id}>
                     <td className="py-2 font-bold">{it.product_name}</td>
                     <td className="py-2 text-center">{it.quantity}</td>

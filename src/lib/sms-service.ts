@@ -89,7 +89,7 @@ export async function sendAutomatedMobileSms(
           error: data.message || 'Fast2SMS dispatch failed',
         };
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Fast2SMS Error:', err);
     }
   }
@@ -128,7 +128,7 @@ export async function sendAutomatedMobileSms(
           isRealDelivery: true,
         };
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Twilio SMS Error:', err);
     }
   }

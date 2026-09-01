@@ -16,6 +16,40 @@ import {
   DeliveryStatus,
   DeliveryMethod,
 } from '@/lib/types';
+import {
+  isSupabaseConfigured,
+  fetchShopFromSupabase,
+  fetchProductsFromSupabase,
+  fetchCategoriesFromSupabase,
+  fetchOrdersFromSupabase,
+  fetchBillsFromSupabase,
+  fetchExpensesFromSupabase,
+  fetchInvestmentsFromSupabase,
+  saveProductToSupabase,
+  deleteProductFromSupabase,
+  saveOrderToSupabase,
+  saveBillToSupabase,
+  saveExpenseToSupabase,
+  saveInvestmentToSupabase,
+  saveStockMovementToSupabase,
+  updateShopSettingsInSupabase,
+} from '@/lib/supabase';
+
+export type {
+  ShopSettings,
+  Category,
+  Product,
+  CartItem,
+  Order,
+  OrderStatus,
+  Investment,
+  Expense,
+  Bill,
+  StockMovement,
+  CustomerProfile,
+  DeliveryStatus,
+  DeliveryMethod,
+};
 
 // ORIGINAL SHOP BRANDING & DETAILS
 const INITIAL_SHOP: ShopSettings = {
@@ -26,12 +60,12 @@ const INITIAL_SHOP: ShopSettings = {
   logo_url:
     'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80',
   address: 'Sri Samundi Store & Tea Stall, Main Road',
-  phone: '+91 98765 43210',
-  email: 'srisamundi@example.com',
+  phone: '+91 81908 12500',
+  email: 'dinesh2122007@gmail.com',
   latitude: 12.3999,
   longitude: 78.2181,
-  google_maps_url: 'https://maps.app.goo.gl/H88PRc7RX7LVKecF8',
-  opening_hours: 'Mon - Sun: 6:00 AM - 10:00 PM',
+  google_maps_url: 'https://maps.app.goo.gl/92QnYifkpxdVkEv27',
+  opening_hours: '24 Hours Open',
   delivery_enabled: true,
   delivery_charge: 30,
   minimum_order: 100,
@@ -57,27 +91,12 @@ const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-7', name: 'Spices & Essentials', image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80' },
 ];
 
-// CLEAR DEMO PRODUCTS LIST SO OWNER CAN ADD THEIR ORIGINAL PRODUCTS
 const INITIAL_PRODUCTS: Product[] = [];
-
 const INITIAL_INVESTMENTS: Investment[] = [];
 const INITIAL_EXPENSES: Expense[] = [];
 const INITIAL_ORDERS: Order[] = [];
 
-const INITIAL_REGISTERED_CUSTOMERS: CustomerProfile[] = [
-  {
-    id: 'cust-demo-1',
-    name: 'Ramesh Kumar',
-    email: 'ramesh.customer@example.com',
-    phone: '+91 98765 12345',
-    password: 'customer123',
-    address: 'Green Park Road',
-    area: 'Green Park',
-    city: 'New Delhi',
-    pincode: '110016',
-    created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
-  },
-];
+const INITIAL_REGISTERED_CUSTOMERS: CustomerProfile[] = [];
 
 interface DataContextType {
   shop: ShopSettings;
@@ -90,6 +109,7 @@ interface DataContextType {
   bills: Bill[];
   stockMovements: StockMovement[];
   isOwnerLoggedIn: boolean;
+  isLoaded: boolean;
 
   registeredCustomers: CustomerProfile[];
   currentCustomer: CustomerProfile | null;
@@ -139,7 +159,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [shop, setShop] = useState<ShopSettings>(INITIAL_SHOP);
-  const [categories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
@@ -148,57 +168,151 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [bills, setBills] = useState<Bill[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
   const [isOwnerLoggedIn, setIsOwnerLoggedIn] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const [registeredCustomers, setRegisteredCustomers] = useState<CustomerProfile[]>(INITIAL_REGISTERED_CUSTOMERS);
-  const [currentCustomer, setCurrentCustomer] = useState<CustomerProfile | null>(INITIAL_REGISTERED_CUSTOMERS[0]);
+  const [currentCustomer, setCurrentCustomer] = useState<CustomerProfile | null>(null);
 
-  // Load from localStorage on mount
+  // Load from Supabase DB or localStorage ONCE on mount
   useEffect(() => {
-    try {
-      const savedShop = localStorage.getItem('shop_data');
-      if (savedShop) {
-        const parsed = JSON.parse(savedShop);
-        parsed.name = 'Sri Samundi Store & Tea Stall';
-        parsed.google_maps_url = 'https://maps.app.goo.gl/H88PRc7RX7LVKecF8';
-        setShop(parsed);
-      } else {
-        setShop(INITIAL_SHOP);
+    async function initData() {
+      try {
+        if (isSupabaseConfigured) {
+          const dbShop = await fetchShopFromSupabase();
+          if (dbShop) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setShop((prev) => ({ ...prev, ...dbShop }));
+          }
+
+          const dbProducts = await fetchProductsFromSupabase();
+          if (dbProducts) setProducts(dbProducts);
+
+          const dbCategories = await fetchCategoriesFromSupabase();
+          if (dbCategories) setCategories(dbCategories);
+
+          const dbOrders = await fetchOrdersFromSupabase();
+          if (dbOrders) setOrders(dbOrders);
+
+          const dbBills = await fetchBillsFromSupabase();
+          if (dbBills) setBills(dbBills);
+
+          const dbExpenses = await fetchExpensesFromSupabase();
+          if (dbExpenses) setExpenses(dbExpenses);
+
+          const dbInvestments = await fetchInvestmentsFromSupabase();
+          if (dbInvestments) setInvestments(dbInvestments);
+        }
+
+        const savedShop = localStorage.getItem('shop_data');
+        if (savedShop) {
+          const parsed = JSON.parse(savedShop);
+          parsed.name = 'Sri Samundi Store & Tea Stall';
+          parsed.phone = '+91 81908 12500';
+          parsed.google_maps_url = 'https://maps.app.goo.gl/92QnYifkpxdVkEv27';
+          parsed.opening_hours = '24 Hours Open';
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setShop((prev) => ({ ...prev, ...parsed }));
+        }
+
+        const savedProducts = localStorage.getItem('products_data');
+        if (savedProducts && !isSupabaseConfigured) {
+          setProducts(JSON.parse(savedProducts));
+        }
+
+        const savedOrders = localStorage.getItem('orders_data');
+        if (savedOrders && !isSupabaseConfigured) setOrders(JSON.parse(savedOrders));
+
+        const savedInvestments = localStorage.getItem('investments_data');
+        if (savedInvestments && !isSupabaseConfigured) setInvestments(JSON.parse(savedInvestments));
+
+        const savedExpenses = localStorage.getItem('expenses_data');
+        if (savedExpenses && !isSupabaseConfigured) setExpenses(JSON.parse(savedExpenses));
+
+        const savedBills = localStorage.getItem('bills_data');
+        if (savedBills && !isSupabaseConfigured) setBills(JSON.parse(savedBills));
+
+        const savedCart = localStorage.getItem('cart_data');
+        if (savedCart) setCart(JSON.parse(savedCart));
+
+        const savedAuth = localStorage.getItem('owner_auth');
+        if (savedAuth === 'true') setIsOwnerLoggedIn(true);
+
+        const savedRegisteredCusts = localStorage.getItem('registered_customers_data');
+        if (savedRegisteredCusts) {
+          const parsedCusts: CustomerProfile[] = JSON.parse(savedRegisteredCusts);
+          const filtered = parsedCusts.filter((c) => c.id !== 'cust-demo-1' && c.email !== 'ramesh.customer@example.com');
+          setRegisteredCustomers(filtered);
+        }
+
+        const savedCust = localStorage.getItem('customer_user');
+        if (savedCust) {
+          const parsedCust: CustomerProfile = JSON.parse(savedCust);
+          if (parsedCust && parsedCust.id !== 'cust-demo-1' && parsedCust.email !== 'ramesh.customer@example.com') {
+            setCurrentCustomer(parsedCust);
+          } else {
+            localStorage.removeItem('customer_user');
+            setCurrentCustomer(null);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading initial data:', e);
+      } finally {
+        setIsLoaded(true);
       }
-
-      const savedProducts = localStorage.getItem('products_data');
-      if (savedProducts) {
-        setProducts(JSON.parse(savedProducts));
-      } else {
-        setProducts([]);
-      }
-
-      const savedOrders = localStorage.getItem('orders_data');
-      if (savedOrders) setOrders(JSON.parse(savedOrders));
-
-      const savedInvestments = localStorage.getItem('investments_data');
-      if (savedInvestments) setInvestments(JSON.parse(savedInvestments));
-
-      const savedExpenses = localStorage.getItem('expenses_data');
-      if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
-
-      const savedBills = localStorage.getItem('bills_data');
-      if (savedBills) setBills(JSON.parse(savedBills));
-
-      const savedCart = localStorage.getItem('cart_data');
-      if (savedCart) setCart(JSON.parse(savedCart));
-
-      const savedAuth = localStorage.getItem('owner_auth');
-      if (savedAuth === 'true') setIsOwnerLoggedIn(true);
-
-      const savedRegisteredCusts = localStorage.getItem('registered_customers_data');
-      if (savedRegisteredCusts) setRegisteredCustomers(JSON.parse(savedRegisteredCusts));
-
-      const savedCust = localStorage.getItem('customer_user');
-      if (savedCust) setCurrentCustomer(JSON.parse(savedCust));
-    } catch (e) {
-      console.error('Error loading local storage:', e);
     }
+
+    initData();
   }, []);
+
+  // Save to localStorage ONLY AFTER isLoaded IS TRUE
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('shop_data', JSON.stringify(shop));
+  }, [shop, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('products_data', JSON.stringify(products));
+  }, [products, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('orders_data', JSON.stringify(orders));
+  }, [orders, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('investments_data', JSON.stringify(investments));
+  }, [investments, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('expenses_data', JSON.stringify(expenses));
+  }, [expenses, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('bills_data', JSON.stringify(bills));
+  }, [bills, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('cart_data', JSON.stringify(cart));
+  }, [cart, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('registered_customers_data', JSON.stringify(registeredCustomers));
+  }, [registeredCustomers, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (currentCustomer) {
+      localStorage.setItem('customer_user', JSON.stringify(currentCustomer));
+    } else {
+      localStorage.removeItem('customer_user');
+    }
+  }, [currentCustomer, isLoaded]);
 
   // Clear demo data completely
   const clearAllDemoData = () => {
@@ -215,47 +329,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('bills_data');
     localStorage.removeItem('cart_data');
   };
-
-  // Save to localStorage
-  useEffect(() => {
-    localStorage.setItem('shop_data', JSON.stringify(shop));
-  }, [shop]);
-
-  useEffect(() => {
-    localStorage.setItem('products_data', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('orders_data', JSON.stringify(orders));
-  }, [orders]);
-
-  useEffect(() => {
-    localStorage.setItem('investments_data', JSON.stringify(investments));
-  }, [investments]);
-
-  useEffect(() => {
-    localStorage.setItem('expenses_data', JSON.stringify(expenses));
-  }, [expenses]);
-
-  useEffect(() => {
-    localStorage.setItem('bills_data', JSON.stringify(bills));
-  }, [bills]);
-
-  useEffect(() => {
-    localStorage.setItem('cart_data', JSON.stringify(cart));
-  }, [cart]);
-
-  useEffect(() => {
-    localStorage.setItem('registered_customers_data', JSON.stringify(registeredCustomers));
-  }, [registeredCustomers]);
-
-  useEffect(() => {
-    if (currentCustomer) {
-      localStorage.setItem('customer_user', JSON.stringify(currentCustomer));
-    } else {
-      localStorage.removeItem('customer_user');
-    }
-  }, [currentCustomer]);
 
   // Customer Auth Actions
   const loginCustomer = (email: string, phone: string, name?: string) => {
@@ -333,6 +406,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateShopSettings = (settings: Partial<ShopSettings>) => {
     setShop((prev) => ({ ...prev, ...settings }));
+    updateShopSettingsInSupabase(settings);
   };
 
   // Product Actions
@@ -344,6 +418,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updated_at: new Date().toISOString(),
     };
     setProducts((prev) => [newProduct, ...prev]);
+    saveProductToSupabase(newProduct);
 
     if (newProduct.stock_quantity > 0) {
       const movement: StockMovement = {
@@ -356,23 +431,40 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         created_at: new Date().toISOString(),
       };
       setStockMovements((prev) => [movement, ...prev]);
+      saveStockMovementToSupabase(movement);
     }
   };
 
   const updateProduct = (id: string, updatedFields: Partial<Product>) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updatedFields, updated_at: new Date().toISOString() } : p))
+      prev.map((p) => {
+        if (p.id === id) {
+          const updated = { ...p, ...updatedFields, updated_at: new Date().toISOString() };
+          saveProductToSupabase(updated);
+          return updated;
+        }
+        return p;
+      })
     );
   };
 
   const deleteProduct = (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
+    deleteProductFromSupabase(id);
   };
 
   const restockProduct = (id: string, qty: number, note?: string) => {
+    let updatedProd: Product | undefined;
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, stock_quantity: p.stock_quantity + qty } : p))
+      prev.map((p) => {
+        if (p.id === id) {
+          updatedProd = { ...p, stock_quantity: p.stock_quantity + qty };
+          return updatedProd;
+        }
+        return p;
+      })
     );
+    if (updatedProd) saveProductToSupabase(updatedProd);
 
     const prod = products.find((p) => p.id === id);
     const movement: StockMovement = {
@@ -385,6 +477,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       created_at: new Date().toISOString(),
     };
     setStockMovements((prev) => [movement, ...prev]);
+    saveStockMovementToSupabase(movement);
   };
 
   // Cart Actions
@@ -433,9 +526,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     target: Order | Bill,
     method?: DeliveryMethod
   ): Promise<{ success: boolean; status: string; error?: string }> => {
-    const recipientPhone = (target as any).customer_mobile || (target as any).customer_phone || '';
-    const invoiceUrl = `${window.location.origin}${target.invoice_url || `/invoice/${target.invoice_token}`}`;
     const isOrder = 'order_number' in target;
+    const recipientPhone = isOrder ? (target as Order).customer_mobile || (target as Order).customer_phone || '' : (target as Bill).customer_mobile || '';
+    const invoiceUrl = `${window.location.origin}${target.invoice_url || `/invoice/${target.invoice_token}`}`;
     const orderNo = isOrder ? (target as Order).order_number : (target as Bill).bill_number;
     const totalAmount = isOrder ? (target as Order).total_amount : (target as Bill).total;
 
@@ -446,12 +539,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({
           recipientPhone,
           customerName: target.customer_name,
-          billNumber: target.invoice_number || (target as any).bill_number || orderNo,
+          billNumber: target.invoice_number || (!isOrder ? (target as Bill).bill_number : orderNo),
           orderNumber: orderNo,
           totalAmount,
           invoiceUrl,
           deliveryMethod: method || shop.preferred_delivery_method || 'WHATSAPP',
           shopName: shop.name,
+          smsApiKey: shop.sms_api_key,
+          whatsappApiKey: shop.whatsapp_api_key,
         }),
       });
 
@@ -487,8 +582,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return data;
-    } catch (err: any) {
-      return { success: false, status: 'FAILED', error: err.message || 'Notification Request Failed' };
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Notification Request Failed';
+      return { success: false, status: 'FAILED', error: errorMessage };
     }
   };
 
@@ -517,6 +613,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setOrders((prev) => [newOrder, ...prev]);
+    saveOrderToSupabase(newOrder);
 
     // Stock deduction
     newOrder.items.forEach((item) => {
@@ -601,6 +698,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       created_at: new Date().toISOString(),
     };
     setInvestments((prev) => [newInv, ...prev]);
+    saveInvestmentToSupabase(newInv);
   };
 
   const addExpense = (exp: Omit<Expense, 'id'>) => {
@@ -610,6 +708,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       created_at: new Date().toISOString(),
     };
     setExpenses((prev) => [newExp, ...prev]);
+    saveExpenseToSupabase(newExp);
   };
 
   const createBill = (
@@ -636,6 +735,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setBills((prev) => [newBill, ...prev]);
+    saveBillToSupabase(newBill);
 
     newBill.items.forEach((item) => {
       setProducts((prev) =>
@@ -702,6 +802,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         bills,
         stockMovements,
         isOwnerLoggedIn,
+        isLoaded,
         registeredCustomers,
         currentCustomer,
         loginCustomer,

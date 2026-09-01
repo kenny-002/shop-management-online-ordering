@@ -28,11 +28,11 @@ export default function CustomerLoginPage() {
 
   // Customer Form Fields
   const [custName, setCustName] = useState('');
-  const [custEmailOrPhone, setCustEmailOrPhone] = useState('ramesh.customer@example.com');
+  const [custEmailOrPhone, setCustEmailOrPhone] = useState('');
   const [custRegisterEmail, setCustRegisterEmail] = useState('');
   const [custPhone, setCustPhone] = useState('');
   const [custAddress, setCustAddress] = useState('');
-  const [custPassword, setCustPassword] = useState('customer123');
+  const [custPassword, setCustPassword] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
@@ -116,18 +116,6 @@ export default function CustomerLoginPage() {
       setSuccessNotice('Account registered successfully! Redirecting to shop...');
       setTimeout(() => router.push('/products'), 800);
     }, 400);
-  };
-
-  const handleDemoCustomer = () => {
-    setErrorNotice(null);
-    setErrorType(null);
-    setCustEmailOrPhone('ramesh.customer@example.com');
-    setCustPassword('customer123');
-    const res = authenticateCustomer('ramesh.customer@example.com', 'customer123');
-    if (res.success) {
-      setSuccessNotice('Demo account authenticated! Redirecting to store...');
-      setTimeout(() => router.push('/products'), 600);
-    }
   };
 
   const switchToRegister = () => {
@@ -236,14 +224,16 @@ export default function CustomerLoginPage() {
 
         {/* FORM 1: CUSTOMER LOGIN */}
         {customerMode === 'login' ? (
-          <form onSubmit={handleCustomerLogin} className="space-y-4 text-xs">
+          <form onSubmit={handleCustomerLogin} className="space-y-4 text-xs" autoComplete="off">
             <div>
               <label className="font-semibold text-slate-300 block mb-1">Registered Mobile Number or Email *</label>
               <div className="relative">
                 <input
                   type="text"
+                  name="customer_login_identifier_no_autofill"
+                  autoComplete="off"
                   required
-                  placeholder="e.g. ramesh.customer@example.com or +91 98765 12345"
+                  placeholder="e.g. customer@example.com or +91 98765 12345"
                   value={custEmailOrPhone}
                   onChange={(e) => setCustEmailOrPhone(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
@@ -257,6 +247,8 @@ export default function CustomerLoginPage() {
               <div className="relative">
                 <input
                   type="password"
+                  name="customer_login_password_no_autofill"
+                  autoComplete="new-password"
                   required
                   placeholder="••••••••"
                   value={custPassword}
@@ -289,7 +281,7 @@ export default function CustomerLoginPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Ramesh Kumar"
+                  placeholder="e.g. Rahul Sharma"
                   value={custName}
                   onChange={(e) => setCustName(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
@@ -368,17 +360,6 @@ export default function CustomerLoginPage() {
           </form>
         )}
 
-        {/* Customer Demo Shortcut */}
-        <div className="border-t border-slate-800 pt-4 text-center space-y-2">
-          <p className="text-[10px] text-slate-400">Quick Test with Demo Registered Account:</p>
-          <button
-            type="button"
-            onClick={handleDemoCustomer}
-            className="w-full bg-slate-950 hover:bg-slate-800 text-emerald-400 border border-slate-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors"
-          >
-            <Sparkles className="w-4 h-4 text-amber-400" /> 1-Click Instant Demo Login (Ramesh Kumar)
-          </button>
-        </div>
       </div>
 
       {/* DISTINCT OWNER PORTAL NAVIGATION LINK */}

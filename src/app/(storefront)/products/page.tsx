@@ -4,7 +4,7 @@ import React, { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Plus, Check, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
-import { useData } from '@/context/data-context';
+import { useData, Product } from '@/context/data-context';
 
 function ProductCatalogContent() {
   const searchParams = useSearchParams();
@@ -59,7 +59,7 @@ function ProductCatalogContent() {
       });
   }, [products, searchQuery, selectedCategory, stockFilter, maxPrice, sortBy]);
 
-  const handleAddToCart = (prod: any) => {
+  const handleAddToCart = (prod: Product) => {
     addToCart(prod, 1);
     setAddedId(prod.id);
     setTimeout(() => setAddedId(null), 1500);
@@ -124,7 +124,7 @@ function ProductCatalogContent() {
             <ArrowUpDown className="w-3.5 h-3.5 text-emerald-400" />
             <select
               value={sortBy}
-              onChange={(e: any) => setSortBy(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as 'priceLow' | 'priceHigh' | 'newest' | 'popular')}
               className="bg-transparent text-slate-100 font-semibold focus:outline-none"
             >
               <option value="popular" className="bg-slate-900">Sort: Popular</option>
@@ -171,7 +171,7 @@ function ProductCatalogContent() {
           </div>
           <h3 className="text-lg font-bold text-white">No Products Found</h3>
           <p className="text-xs text-slate-400">
-            We couldn't find any products matching "{searchQuery}". Try searching for something else or clear filters.
+            We couldn&apos;t find any products matching &quot;{searchQuery}&quot;. Try searching for something else or clear filters.
           </p>
           <button
             onClick={() => {

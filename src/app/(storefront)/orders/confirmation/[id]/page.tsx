@@ -16,7 +16,7 @@ export default function OrderConfirmationPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
         <h2 className="text-2xl font-bold text-white">Order Not Found</h2>
-        <p className="text-xs text-slate-400">We couldn't locate this order ID.</p>
+        <p className="text-xs text-slate-400">We couldn&apos;t locate this order ID.</p>
         <Link href="/products" className="inline-block bg-emerald-600 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs">
           Return to Storefront
         </Link>

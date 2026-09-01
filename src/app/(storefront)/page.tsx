@@ -18,7 +18,7 @@ import {
   Star,
   Store,
 } from 'lucide-react';
-import { useData } from '@/context/data-context';
+import { useData, Product } from '@/context/data-context';
 
 export default function HomePage() {
   const { shop, categories, products, addToCart } = useData();
@@ -27,7 +27,7 @@ export default function HomePage() {
   const featuredProducts = products.slice(0, 8);
   const inStockProducts = products.filter((p) => p.stock_quantity > 0).slice(0, 8);
 
-  const handleAddToCart = (prod: any) => {
+  const handleAddToCart = (prod: Product) => {
     addToCart(prod, 1);
     setAddedId(prod.id);
     setTimeout(() => setAddedId(null), 1500);
@@ -308,7 +308,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-bold text-white text-base">Real-Time Stock Clarity</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Never guess if an item is available. Live stock counts are updated directly from the shop owner's register.
+              Never guess if an item is available. Live stock counts are updated directly from the shop owner&apos;s register.
             </p>
           </div>
 
@@ -328,7 +328,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-bold text-white text-base">Scan & Pay UPI Payment</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Pay securely using Google Pay, PhonePe, Paytm or BHIM UPI by scanning the shop's official QR code.
+              Pay securely using Google Pay, PhonePe, Paytm or BHIM UPI by scanning the shop&apos;s official QR code.
             </p>
           </div>
         </div>
@@ -382,18 +382,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 aspect-video flex flex-col justify-center items-center text-center p-6 space-y-3">
-            <MapPin className="w-12 h-12 text-emerald-400 animate-bounce" />
-            <h4 className="font-bold text-white text-base">Google Maps Location</h4>
-            <p className="text-xs text-slate-400 max-w-xs">{shop.address}</p>
-            <a
-              href={shop.google_maps_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-emerald-400 font-semibold underline hover:text-emerald-300"
-            >
-              Open Interactive Google Map
-            </a>
+          <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 min-h-[300px] flex flex-col shadow-inner">
+            <iframe
+              title="Shop Location Map"
+              width="100%"
+              height="100%"
+              style={{ border: 0, minHeight: '300px' }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(shop.name + ', ' + shop.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              className="w-full h-full min-h-[300px] rounded-2xl"
+            />
           </div>
         </div>
       </section>

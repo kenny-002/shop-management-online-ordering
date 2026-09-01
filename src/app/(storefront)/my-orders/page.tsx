@@ -45,7 +45,7 @@ export default function MyOrdersPage() {
             <Package className="w-6 h-6" />
           </div>
           <h3 className="text-lg font-bold text-white">No Orders Found</h3>
-          <p className="text-xs text-slate-400">We couldn't find any orders matching your phone or order number search.</p>
+          <p className="text-xs text-slate-400">We couldn&apos;t find any orders matching your phone or order number search.</p>
         </div>
       ) : (
         <div className="space-y-4">

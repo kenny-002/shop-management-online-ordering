@@ -22,6 +22,7 @@ export default function CustomerAccountPage() {
   // Sync state when currentCustomer changes
   useEffect(() => {
     if (currentCustomer) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(currentCustomer.name || '');
       setPhone(currentCustomer.phone || '');
       setEmail(currentCustomer.email || '');

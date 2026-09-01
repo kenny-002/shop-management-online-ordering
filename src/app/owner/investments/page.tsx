@@ -101,7 +101,7 @@ export default function OwnerInvestmentsPage() {
                 <label className="font-semibold text-slate-300 block mb-1">Investment Type *</label>
                 <select
                   value={category}
-                  onChange={(e: any) => setCategory(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value as 'Stock Purchase' | 'Shop Equipment' | 'Furniture' | 'Renovation' | 'Marketing' | 'Other')}
                   className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5"
                 >
                   <option value="Stock Purchase">Stock Purchase</option>

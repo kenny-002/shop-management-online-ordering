@@ -6,29 +6,108 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 import { useData } from '@/context/data-context';
 
 export default function OwnerSalesPage() {
-  const { orders, bills, totalSales } = useData();
+  const { orders, bills, totalSales, categories, products } = useData();
 
-  const todaySales = totalSales * 0.25;
-  const weekSales = totalSales * 0.65;
-  const monthSales = totalSales;
+  const now = new Date();
 
-  const salesData = [
-    { name: 'Mon', Sales: Math.round(totalSales * 0.1) },
-    { name: 'Tue', Sales: Math.round(totalSales * 0.15) },
-    { name: 'Wed', Sales: Math.round(totalSales * 0.12) },
-    { name: 'Thu', Sales: Math.round(totalSales * 0.18) },
-    { name: 'Fri', Sales: Math.round(totalSales * 0.2) },
-    { name: 'Sat', Sales: Math.round(totalSales * 0.25) },
-    { name: 'Sun', Sales: Math.round(totalSales * 0.22) },
-  ];
+  const isSameCalendarDay = (dateString?: string, targetDate: Date = now) => {
+    if (!dateString) return false;
+    const itemDate = new Date(dateString);
+    return (
+      itemDate.getFullYear() === targetDate.getFullYear() &&
+      itemDate.getMonth() === targetDate.getMonth() &&
+      itemDate.getDate() === targetDate.getDate()
+    );
+  };
 
-  const categoryData = [
-    { name: 'Rice & Grains', value: 35 },
-    { name: 'Oils & Ghee', value: 25 },
-    { name: 'Atta & Pulses', value: 20 },
-    { name: 'Spices', value: 10 },
-    { name: 'Others', value: 10 },
-  ];
+  const validOrders = React.useMemo(() => orders.filter((o) => o.order_status !== 'Cancelled'), [orders]);
+
+  const todaySales = React.useMemo(() => {
+    const oTotal = validOrders.filter((o) => isSameCalendarDay(o.created_at)).reduce((sum, o) => sum + o.total_amount, 0);
+    const bTotal = bills.filter((b) => isSameCalendarDay(b.created_at)).reduce((sum, b) => sum + b.total, 0);
+    return oTotal + bTotal;
+  }, [validOrders, bills]);
+
+  const yesterdaySales = React.useMemo(() => {
+    const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const oTotal = validOrders.filter((o) => isSameCalendarDay(o.created_at, yest)).reduce((sum, o) => sum + o.total_amount, 0);
+    const bTotal = bills.filter((b) => isSameCalendarDay(b.created_at, yest)).reduce((sum, b) => sum + b.total, 0);
+    return oTotal + bTotal;
+  }, [validOrders, bills]);
+
+  const pctChange = yesterdaySales > 0 ? Math.round(((todaySales - yesterdaySales) / yesterdaySales) * 100) : todaySales > 0 ? 100 : 0;
+
+  const weekSales = React.useMemo(() => {
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
+    const oTotal = validOrders.filter((o) => new Date(o.created_at) >= sevenDaysAgo).reduce((sum, o) => sum + o.total_amount, 0);
+    const bTotal = bills.filter((b) => new Date(b.created_at) >= sevenDaysAgo).reduce((sum, b) => sum + b.total, 0);
+    return oTotal + bTotal;
+  }, [validOrders, bills]);
+
+  const monthSales = React.useMemo(() => {
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000);
+    const oTotal = validOrders.filter((o) => new Date(o.created_at) >= thirtyDaysAgo).reduce((sum, o) => sum + o.total_amount, 0);
+    const bTotal = bills.filter((b) => new Date(b.created_at) >= thirtyDaysAgo).reduce((sum, b) => sum + b.total, 0);
+    return oTotal + bTotal;
+  }, [validOrders, bills]);
+
+  const salesData = React.useMemo(() => {
+    const days = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const dayName = i === 0 ? 'Today' : dayNames[d.getDay()];
+
+      const dayOrders = validOrders.filter((o) => isSameCalendarDay(o.created_at, d));
+      const dayBills = bills.filter((b) => isSameCalendarDay(b.created_at, d));
+
+      const oTotal = dayOrders.reduce((sum, o) => sum + o.total_amount, 0);
+      const bTotal = dayBills.reduce((sum, b) => sum + b.total, 0);
+
+      days.push({
+        name: dayName,
+        Sales: oTotal + bTotal,
+      });
+    }
+    return days;
+  }, [validOrders, bills]);
+
+  const categoryData = React.useMemo(() => {
+    const catMap: Record<string, number> = {};
+
+    categories.forEach((cat) => {
+      catMap[cat.name] = 0;
+    });
+
+    const getCatName = (productId: string) => {
+      const prod = products.find((p) => p.id === productId);
+      if (!prod) return 'Others';
+      const cat = categories.find((c) => c.id === prod.category_id);
+      return cat ? cat.name : 'Others';
+    };
+
+    validOrders.forEach((ord) => {
+      ord.items.forEach((item) => {
+        const cName = getCatName(item.product_id);
+        catMap[cName] = (catMap[cName] || 0) + item.subtotal;
+      });
+    });
+
+    bills.forEach((b) => {
+      b.items.forEach((item) => {
+        const cName = getCatName(item.product_id);
+        catMap[cName] = (catMap[cName] || 0) + item.subtotal;
+      });
+    });
+
+    const entries = Object.entries(catMap).map(([name, value]) => ({ name, value }));
+    const nonZero = entries.filter((e) => e.value > 0);
+
+    if (nonZero.length > 0) return nonZero;
+
+    return categories.slice(0, 5).map((c) => ({ name: c.name, value: 0 }));
+  }, [validOrders, bills, categories, products]);
 
   const COLORS = ['#10b981', '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1'];
 
@@ -45,21 +124,21 @@ export default function OwnerSalesPage() {
       {/* Breakdown Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium">Today's Sales</span>
+          <span className="text-[11px] text-slate-400 font-medium">Today&apos;s Sales</span>
           <p className="text-2xl font-black text-white">₹{Math.round(todaySales).toLocaleString()}</p>
           <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-0.5">
-            <ArrowUpRight className="w-3 h-3" /> +12% from yesterday
+            <ArrowUpRight className="w-3 h-3" /> {pctChange >= 0 ? `+${pctChange}%` : `${pctChange}%`} from yesterday
           </span>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium">This Week's Sales</span>
+          <span className="text-[11px] text-slate-400 font-medium">Week&apos;s Sales</span>
           <p className="text-2xl font-black text-white">₹{Math.round(weekSales).toLocaleString()}</p>
           <span className="text-[10px] text-emerald-400 font-semibold">Weekly aggregate</span>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium">This Month's Sales</span>
+          <span className="text-[11px] text-slate-400 font-medium">Month&apos;s Sales</span>
           <p className="text-2xl font-black text-white">₹{Math.round(monthSales).toLocaleString()}</p>
           <span className="text-[10px] text-emerald-400 font-semibold">Monthly aggregate</span>
         </div>

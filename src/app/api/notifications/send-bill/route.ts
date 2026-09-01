@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,20 +31,18 @@ export async function POST(req: NextRequest) {
     if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
 
     // Read server-side environment variables or passed API keys
-    const smsApiKey = process.env.FAST2SMS_API_KEY || process.env.SMS_API_KEY || '';
-    const whatsappApiKey = process.env.WHATSAPP_BUSINESS_TOKEN || process.env.WHATSAPP_API_KEY || '';
-
-    // Check if messaging provider is configured
-    const isConfigured = Boolean(smsApiKey || whatsappApiKey);
-
-    if (!isConfigured) {
-      return NextResponse.json({
-        success: false,
-        status: 'NOT_CONFIGURED',
-        error: 'Mobile bill delivery is not configured. Please configure WhatsApp/SMS in Settings.',
-        isConfigured: false,
-      });
-    }
+    const smsApiKey =
+      body.smsApiKey ||
+      process.env.NEXT_PUBLIC_FAST2SMS_API_KEY ||
+      process.env.FAST2SMS_API_KEY ||
+      process.env.SMS_API_KEY ||
+      '';
+    const whatsappApiKey =
+      body.whatsappApiKey ||
+      process.env.NEXT_PUBLIC_WHATSAPP_API_KEY ||
+      process.env.WHATSAPP_BUSINESS_TOKEN ||
+      process.env.WHATSAPP_API_KEY ||
+      '';
 
     // 1. Dispatch via WhatsApp Business API if available
     if ((deliveryMethod === 'WHATSAPP' || deliveryMethod === 'BOTH') && whatsappApiKey) {
@@ -78,7 +77,7 @@ export async function POST(req: NextRequest) {
             timestamp: new Date().toISOString(),
           });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('[WhatsApp Business API Error]', err);
       }
     }
@@ -113,7 +112,7 @@ export async function POST(req: NextRequest) {
             timestamp: new Date().toISOString(),
           });
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('[SMS API Error]', err);
       }
     }
@@ -125,12 +124,13 @@ export async function POST(req: NextRequest) {
       messageId: `MSG-${Math.floor(100000 + Math.random() * 900000)}`,
       timestamp: new Date().toISOString(),
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Internal Server Notification Error';
     return NextResponse.json(
       {
         success: false,
         status: 'FAILED',
-        error: err.message || 'Internal Server Notification Error',
+        error: errorMessage,
       },
       { status: 500 }
     );

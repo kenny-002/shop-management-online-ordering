@@ -3,15 +3,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, Mail, Store, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { Lock, Mail, Store, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function OwnerLoginPage() {
   const router = useRouter();
   const { shop, loginOwner } = useData();
 
-  const [email, setEmail] = useState('owner@freshmartlocal.com');
-  const [password, setPassword] = useState('owner123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -20,17 +20,21 @@ export default function OwnerLoginPage() {
     setErrorMsg('');
     setLoading(true);
 
-    // Simulate auth validation or demo login
-    setTimeout(() => {
-      loginOwner();
-      router.push('/owner/dashboard');
-    }, 600);
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (cleanEmail === 'dinesh2122007@gmail.com' && password === 'Dinesh@2007') {
+      setTimeout(() => {
+        loginOwner();
+        router.push('/owner/dashboard');
+      }, 500);
+    } else {
+      setTimeout(() => {
+        setLoading(false);
+        setErrorMsg('Invalid owner email address or password! Access denied.');
+      }, 400);
+    }
   };
 
-  const handleQuickDemoLogin = () => {
-    loginOwner();
-    router.push('/owner/dashboard');
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden">
@@ -61,16 +65,19 @@ export default function OwnerLoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
             <div>
               <label className="text-xs font-semibold text-slate-300 block mb-1">Owner Email Address</label>
               <div className="relative">
                 <input
                   type="email"
+                  name="owner_email_custom_no_autofill"
+                  autoComplete="off"
                   required
+                  placeholder="Enter owner email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
@@ -81,10 +88,13 @@ export default function OwnerLoginPage() {
               <div className="relative">
                 <input
                   type="password"
+                  name="owner_password_custom_no_autofill"
+                  autoComplete="new-password"
                   required
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
@@ -99,18 +109,7 @@ export default function OwnerLoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Access Button */}
-          <div className="border-t border-slate-800 pt-6 space-y-3">
-            <span className="text-[11px] text-slate-400 text-center block uppercase tracking-wider font-semibold">
-              Testing & Demonstration
-            </span>
-            <button
-              onClick={handleQuickDemoLogin}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors"
-            >
-              <Sparkles className="w-4 h-4 text-amber-400" /> 1-Click Instant Demo Login
-            </button>
-          </div>
+
         </div>
 
         <div className="text-center">

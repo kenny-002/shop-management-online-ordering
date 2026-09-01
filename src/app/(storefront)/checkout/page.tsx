@@ -107,7 +107,7 @@ export default function CheckoutPage() {
       });
 
       router.push(`/orders/confirmation/${created.id}`);
-    } catch (err: any) {
+    } catch {
       setErrorMsg('Order creation failed. Please try again.');
       setIsSubmitting(false);
     }
@@ -117,7 +117,7 @@ export default function CheckoutPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div>
         <h1 className="text-3xl font-extrabold text-white">Checkout & Order Payment</h1>
-        <p className="text-xs text-slate-400 mt-1">Provide your delivery information and scan the shop's UPI QR code to complete payment.</p>
+        <p className="text-xs text-slate-400 mt-1">Provide your delivery information and scan the shop&apos;s UPI QR code to complete payment.</p>
       </div>
 
       {errorMsg && (
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Ramesh Kumar"
+                  placeholder="e.g. Rahul Sharma"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"

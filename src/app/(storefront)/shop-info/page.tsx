@@ -86,30 +86,36 @@ export default function ShopInfoPage() {
       </div>
 
       {/* Map Embed Section */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white">Google Maps Location</h2>
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+          <div>
+            <h2 className="text-2xl font-extrabold text-white flex items-center gap-2">
+              <MapPin className="w-6 h-6 text-emerald-400" /> Interactive Google Map
+            </h2>
+            <p className="text-xs text-slate-400">{shop.address}</p>
+          </div>
           <a
             href={shop.google_maps_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-bold text-emerald-400 hover:underline flex items-center gap-1"
+            className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-slate-950 px-4 py-2 rounded-xl flex items-center gap-1.5 w-fit shadow transition-all"
           >
-            Open Maps <ExternalLink className="w-3.5 h-3.5" />
+            Open in Google Maps App <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
-        <div className="relative aspect-video rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center text-center p-6 space-y-3">
-          <MapPin className="w-12 h-12 text-emerald-400 animate-bounce" />
-          <h3 className="font-extrabold text-white text-lg">{shop.name}</h3>
-          <p className="text-xs text-slate-400 max-w-sm">{shop.address}</p>
-          <a
-            href={shop.google_maps_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs"
-          >
-            Open in Google Maps App
-          </a>
+
+        <div className="relative w-full h-[420px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-inner">
+          <iframe
+            title="Shop Location Map"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(shop.name + ', ' + shop.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+            className="w-full h-full rounded-2xl"
+          />
         </div>
       </div>
     </div>

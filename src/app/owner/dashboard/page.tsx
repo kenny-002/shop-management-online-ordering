@@ -23,6 +23,8 @@ export default function OwnerDashboardPage() {
     shop,
     products,
     orders,
+    bills,
+    expenses,
     totalSales,
     totalInvestments,
     totalExpenses,
@@ -35,15 +37,56 @@ export default function OwnerDashboardPage() {
   const pendingOrders = orders.filter((o) => o.order_status === 'Pending');
   const deliveredOrders = orders.filter((o) => o.order_status === 'Delivered');
 
-  // Chart Demo Data Generator
-  const chartData = [
-    { name: 'Day 1', Sales: Math.round(totalSales * 0.12), Profit: Math.round(netProfit * 0.1) },
-    { name: 'Day 2', Sales: Math.round(totalSales * 0.18), Profit: Math.round(netProfit * 0.15) },
-    { name: 'Day 3', Sales: Math.round(totalSales * 0.15), Profit: Math.round(netProfit * 0.12) },
-    { name: 'Day 4', Sales: Math.round(totalSales * 0.25), Profit: Math.round(netProfit * 0.22) },
-    { name: 'Day 5', Sales: Math.round(totalSales * 0.20), Profit: Math.round(netProfit * 0.18) },
-    { name: 'Today', Sales: Math.round(totalSales * 0.30), Profit: Math.round(netProfit * 0.28) },
-  ];
+  // Compute real 6-day + Today Sales & Profit breakdown based on actual timestamps
+  const chartData = React.useMemo(() => {
+    const days = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const isToday = i === 0;
+      const dayLabel = isToday ? 'Today' : `Day ${6 - i}`;
+
+      const isSameCalendarDay = (dateString?: string) => {
+        if (!dateString) return false;
+        const itemDate = new Date(dateString);
+        return (
+          itemDate.getFullYear() === d.getFullYear() &&
+          itemDate.getMonth() === d.getMonth() &&
+          itemDate.getDate() === d.getDate()
+        );
+      };
+
+      const dayOrders = orders.filter((o) => o.order_status !== 'Cancelled' && isSameCalendarDay(o.created_at));
+      const dayBills = bills.filter((b) => isSameCalendarDay(b.created_at));
+      const dayExpenses = expenses.filter((e) => isSameCalendarDay(e.created_at));
+
+      const orderSales = dayOrders.reduce((sum, o) => sum + o.total_amount, 0);
+      const billSales = dayBills.reduce((sum, b) => sum + b.total, 0);
+      const dailySales = orderSales + billSales;
+
+      const orderCOGS = dayOrders.reduce(
+        (sum, o) => sum + o.items.reduce((iSum, item) => iSum + (item.purchase_price || 0) * item.quantity, 0),
+        0
+      );
+      const billCOGS = dayBills.reduce(
+        (sum, b) => sum + b.items.reduce((iSum, item) => iSum + (item.purchase_price || 0) * item.quantity, 0),
+        0
+      );
+      const dailyCOGS = orderCOGS + billCOGS;
+
+      const dailyExpensesTotal = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
+      const dailyProfit = dailySales - dailyCOGS - dailyExpensesTotal;
+
+      days.push({
+        name: dayLabel,
+        Sales: Math.max(0, dailySales),
+        Profit: dailyProfit,
+      });
+    }
+
+    return days;
+  }, [orders, bills, expenses]);
 
   return (
     <div className="space-y-8">

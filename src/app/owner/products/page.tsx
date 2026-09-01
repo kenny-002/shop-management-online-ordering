@@ -12,6 +12,7 @@ export default function OwnerProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalId, setDeleteModalId] = useState<string | null>(null);
+  const [showClearAllModal, setShowClearAllModal] = useState(false);
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -127,11 +128,7 @@ export default function OwnerProductsPage() {
         <div className="flex flex-wrap items-center gap-3">
           {products.length > 0 && (
             <button
-              onClick={() => {
-                if (window.confirm('Clear all items and start fresh?')) {
-                  clearAllDemoData();
-                }
-              }}
+              onClick={() => setShowClearAllModal(true)}
               className="bg-slate-800 hover:bg-red-500/20 text-red-400 border border-slate-700 px-4 py-3 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Clear All Items
@@ -459,6 +456,41 @@ export default function OwnerProductsPage() {
                 className="flex-1 bg-red-500 hover:bg-red-400 text-white font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-red-500/20"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CLEAR ALL ITEMS CONFIRMATION MODAL */}
+      {showClearAllModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div className="w-12 h-12 bg-red-500/20 text-red-400 rounded-2xl flex items-center justify-center mx-auto">
+              <RefreshCw className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-base text-white">Clear All Products?</h3>
+              <p className="text-xs text-slate-400">
+                Are you sure you want to clear all items from your catalog? This will reset your product list so you can start adding your original store products.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowClearAllModal(false)}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  clearAllDemoData();
+                  setShowClearAllModal(false);
+                }}
+                className="flex-1 bg-red-500 hover:bg-red-400 text-white font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-red-500/20 transition-colors"
+              >
+                Yes, Clear All
               </button>
             </div>
           </div>

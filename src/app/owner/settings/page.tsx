@@ -14,7 +14,7 @@ export default function OwnerSettingsPage() {
   const [phone, setPhone] = useState(shop.phone);
   const [email, setEmail] = useState(shop.email);
   const [openingHours, setOpeningHours] = useState(shop.opening_hours);
-  const [googleMapsUrl, setGoogleMapsUrl] = useState(shop.google_maps_url || 'https://maps.app.goo.gl/H88PRc7RX7LVKecF8');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState(shop.google_maps_url || 'https://maps.app.goo.gl/92QnYifkpxdVkEv27');
 
   // Delivery Settings
   const [deliveryEnabled, setDeliveryEnabled] = useState(shop.delivery_enabled);
@@ -128,7 +128,7 @@ export default function OwnerSettingsPage() {
               <label className="font-semibold text-slate-300 block mb-1">Preferred Delivery Method</label>
               <select
                 value={preferredDeliveryMethod}
-                onChange={(e: any) => setPreferredDeliveryMethod(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPreferredDeliveryMethod(e.target.value as 'WHATSAPP' | 'SMS' | 'BOTH')}
                 className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 font-bold text-emerald-400"
               >
                 <option value="WHATSAPP">○ WhatsApp Business API</option>

@@ -42,9 +42,9 @@ export default function DigitalInvoicePage() {
   }
 
   const isOrder = 'order_number' in invoiceData;
-  const invoiceNo = invoiceData.invoice_number || (isOrder ? `INV-${(invoiceData as any).order_number}` : (invoiceData as any).bill_number);
-  const orderNo = isOrder ? (invoiceData as any).order_number : (invoiceData as any).order_id || 'POS Counter';
-  const customerMobile = (invoiceData as any).customer_mobile || (invoiceData as any).customer_phone || 'N/A';
+  const invoiceNo = invoiceData.invoice_number || (isOrder ? `INV-${invoiceData.order_number}` : invoiceData.bill_number);
+  const orderNo = isOrder ? invoiceData.order_number : (invoiceData.order_id || 'POS Counter');
+  const customerMobile = isOrder ? (invoiceData.customer_mobile || invoiceData.customer_phone || 'N/A') : (invoiceData.customer_mobile || 'N/A');
   const items = invoiceData.items || [];
   const createdDate = new Date(invoiceData.created_at).toLocaleDateString('en-IN', {
     day: 'numeric',
@@ -111,10 +111,10 @@ export default function DigitalInvoicePage() {
               <h3 className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px] mb-1">Customer Details</h3>
               <p className="text-sm font-bold text-slate-900">{invoiceData.customer_name}</p>
               <p className="text-slate-600">Mobile: <strong className="text-slate-900">{customerMobile}</strong></p>
-              {isOrder && (invoiceData as any).delivery_address && (
+              {isOrder && invoiceData.delivery_address && (
                 <p className="text-slate-600 pt-1">
-                  Address: {(invoiceData as any).delivery_address.address}, {(invoiceData as any).delivery_address.area},{' '}
-                  {(invoiceData as any).delivery_address.city} - {(invoiceData as any).delivery_address.pincode}
+                  Address: {invoiceData.delivery_address.address}, {invoiceData.delivery_address.area},{' '}
+                  {invoiceData.delivery_address.city} - {invoiceData.delivery_address.pincode}
                 </p>
               )}
             </div>
@@ -145,7 +145,7 @@ export default function DigitalInvoicePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {items.map((it: any) => (
+                {items.map((it) => (
                   <tr key={it.id}>
                     <td className="py-3 px-3 font-bold text-slate-900">{it.product_name}</td>
                     <td className="py-3 px-3 text-center text-slate-700 font-semibold">{it.quantity}</td>
