@@ -245,7 +245,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch (e) {}
         }
 
-        // 2. Fetch and merge Supabase database records if configured
+        // 2. Fetch products via Multi-Device Cloud API (/api/products)
+        try {
+          const cloudRes = await fetch('/api/products');
+          const cloudData = await cloudRes.json();
+          if (cloudData.success && cloudData.products && cloudData.products.length > 0) {
+            setProducts(cloudData.products);
+          }
+        } catch (err) {
+          console.error('Error fetching products from cloud API:', err);
+        }
+
+        // 3. Fetch and merge Supabase database records if configured
         if (isSupabaseConfigured) {
           const dbShop = await fetchShopFromSupabase();
           if (dbShop && Object.keys(dbShop).length > 0) {
@@ -278,6 +289,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     initData();
+
+    // Auto-sync products across devices on window focus or 8-second interval
+    const handleSyncOnFocus = async () => {
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        if (data.success && data.products && data.products.length > 0) {
+          setProducts(data.products);
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener('focus', handleSyncOnFocus);
+    const syncInterval = setInterval(handleSyncOnFocus, 8000);
+
+    return () => {
+      window.removeEventListener('focus', handleSyncOnFocus);
+      clearInterval(syncInterval);
+    };
   }, []);
 
   // Save to localStorage ONLY AFTER isLoaded IS TRUE
@@ -436,6 +466,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProducts((prev) => [newProduct, ...prev]);
     saveProductToSupabase(newProduct);
 
+    // Push to Cloud API for instant multi-device sync
+    try {
+      fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct),
+      }).catch(() => {});
+    } catch (e) {}
+
     // 1. Stock Movement record
     if (newProduct.stock_quantity > 0) {
       const movement: StockMovement = {
@@ -468,21 +507,37 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProduct = (id: string, updatedFields: Partial<Product>) => {
+    let targetUpdated: Product | undefined;
     setProducts((prev) =>
       prev.map((p) => {
         if (p.id === id) {
           const updated = { ...p, ...updatedFields, updated_at: new Date().toISOString() };
           saveProductToSupabase(updated);
+          targetUpdated = updated;
           return updated;
         }
         return p;
       })
     );
+
+    if (targetUpdated) {
+      try {
+        fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(targetUpdated),
+        }).catch(() => {});
+      } catch (e) {}
+    }
   };
 
   const deleteProduct = (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
     deleteProductFromSupabase(id);
+
+    try {
+      fetch(`/api/products?id=${id}`, { method: 'DELETE' }).catch(() => {});
+    } catch (e) {}
   };
 
   const restockProduct = (id: string, qty: number, note?: string) => {
