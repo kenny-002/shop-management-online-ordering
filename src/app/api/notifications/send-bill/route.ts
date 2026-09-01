@@ -82,12 +82,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. SMS Fallback if WhatsApp is unavailable or preferred method is SMS
+    // 2. SMS Dispatch via Fast2SMS (or configured SMS Gateway)
     if (smsApiKey) {
       try {
-        const smsContent = `[${shopName}] Bill: Order #${orderNumber || billNumber}, Total Rs ${totalAmount}. View your digital invoice: ${invoiceUrl}`;
+        const smsContent = `[${shopName}] Bill: Order #${orderNumber || billNumber}, Total Rs ${totalAmount}. View digital invoice: ${invoiceUrl}`;
+        const raw10DigitPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12 ? cleanPhone.slice(2) : cleanPhone;
 
-        const smsRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        // Try POST first
+        let smsRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
           method: 'POST',
           headers: {
             authorization: smsApiKey,
@@ -98,11 +100,22 @@ export async function POST(req: NextRequest) {
             message: smsContent,
             language: 'english',
             flash: 0,
-            numbers: cleanPhone.startsWith('91') ? cleanPhone.slice(2) : cleanPhone,
+            numbers: raw10DigitPhone,
           }),
         });
 
-        const smsData = await smsRes.json();
+        let smsData = await smsRes.json();
+
+        // If POST failed, try GET method fallback
+        if (!smsData.return) {
+          const getUrl = `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(smsApiKey)}&route=q&message=${encodeURIComponent(smsContent)}&language=english&flash=0&numbers=${raw10DigitPhone}`;
+          const getRes = await fetch(getUrl);
+          const getData = await getRes.json();
+          if (getData.return) {
+            smsData = getData;
+          }
+        }
+
         if (smsData.return) {
           return NextResponse.json({
             success: true,
@@ -111,18 +124,41 @@ export async function POST(req: NextRequest) {
             messageId: `SMS-${smsData.request_id || Date.now()}`,
             timestamp: new Date().toISOString(),
           });
+        } else {
+          const errorMsg = Array.isArray(smsData.message)
+            ? smsData.message.join(', ')
+            : typeof smsData.message === 'string'
+            ? smsData.message
+            : 'Fast2SMS dispatch failed';
+          return NextResponse.json({
+            success: false,
+            status: 'FAILED',
+            deliveryMethod: 'SMS',
+            error: `Fast2SMS Error: ${errorMsg}`,
+            timestamp: new Date().toISOString(),
+          });
         }
       } catch (err: unknown) {
         console.error('[SMS API Error]', err);
+        return NextResponse.json({
+          success: false,
+          status: 'FAILED',
+          deliveryMethod: 'SMS',
+          error: err instanceof Error ? err.message : 'Network error reaching Fast2SMS gateway',
+          timestamp: new Date().toISOString(),
+        });
       }
     }
 
+    // 3. Fallback when no live API key is configured
     return NextResponse.json({
       success: true,
       status: 'SENT',
       deliveryMethod: deliveryMethod,
-      messageId: `MSG-${Math.floor(100000 + Math.random() * 900000)}`,
+      isSimulation: true,
+      messageId: `SIM-${Math.floor(100000 + Math.random() * 900000)}`,
       timestamp: new Date().toISOString(),
+      warning: 'No live SMS API key configured. SMS was simulated locally.',
     });
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Internal Server Notification Error';

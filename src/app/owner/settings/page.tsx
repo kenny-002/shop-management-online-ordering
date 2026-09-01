@@ -42,7 +42,45 @@ export default function OwnerSettingsPage() {
   const [smsApiKey, setSmsApiKey] = useState(shop.sms_api_key || '');
   const [whatsappApiKey, setWhatsappApiKey] = useState(shop.whatsapp_api_key || '');
 
+  // Test SMS State
+  const [testPhone, setTestPhone] = useState('');
+  const [testSmsLoading, setTestSmsLoading] = useState(false);
+  const [testSmsResult, setTestSmsResult] = useState<{ success: boolean; message: string } | null>(null);
+
   const [savedNotice, setSavedNotice] = useState(false);
+
+  const handleTestSms = async () => {
+    if (!testPhone || testPhone.trim().length < 10) {
+      setTestSmsResult({ success: false, message: 'Please enter a valid 10-digit mobile number' });
+      return;
+    }
+    setTestSmsLoading(true);
+    setTestSmsResult(null);
+    try {
+      const res = await fetch('/api/notifications/test-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientPhone: testPhone,
+          apiKey: smsApiKey,
+          provider: 'fast2sms',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestSmsResult({ success: true, message: data.message });
+      } else {
+        setTestSmsResult({ success: false, message: data.error || 'SMS Dispatch Failed' });
+      }
+    } catch (err: unknown) {
+      setTestSmsResult({
+        success: false,
+        message: err instanceof Error ? err.message : 'Network error testing SMS',
+      });
+    } finally {
+      setTestSmsLoading(false);
+    }
+  };
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,11 +215,59 @@ export default function OwnerSettingsPage() {
               </label>
               <input
                 type="password"
-                placeholder="SMS API Key"
+                placeholder="SMS API Key (Fast2SMS / Twilio)"
                 value={smsApiKey}
                 onChange={(e) => setSmsApiKey(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-xs font-mono"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-xs font-mono mb-2"
               />
+
+              {/* Real-time SMS Test Tool */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                    <Smartphone className="w-3 h-3 text-teal-400" /> Test Live Fast2SMS Dispatch
+                  </span>
+                  {testSmsResult && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        testSmsResult.success
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                      }`}
+                    >
+                      {testSmsResult.success ? '✓ Dispatch Succeeded' : '✕ Dispatch Failed'}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    placeholder="Enter 10-digit Mobile No (e.g. 9876543210)"
+                    value={testPhone}
+                    onChange={(e) => setTestPhone(e.target.value)}
+                    className="flex-1 bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-1.5 font-mono"
+                  />
+                  <button
+                    type="button"
+                    disabled={testSmsLoading || !testPhone}
+                    onClick={handleTestSms}
+                    className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-md"
+                  >
+                    {testSmsLoading ? 'Testing...' : 'Send Test SMS'}
+                  </button>
+                </div>
+                {testSmsResult && (
+                  <p
+                    className={`text-[11px] font-mono p-2 rounded-lg ${
+                      testSmsResult.success
+                        ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-800/50'
+                        : 'bg-rose-950/50 text-rose-300 border border-rose-800/50'
+                    }`}
+                  >
+                    {testSmsResult.message}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
