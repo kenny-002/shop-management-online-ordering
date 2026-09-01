@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import html2canvas from 'html2canvas';
 import {
   Receipt,
   Search,
@@ -22,6 +23,7 @@ import {
   AlertTriangle,
   ExternalLink,
   Download,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useData } from '@/context/data-context';
 import { Product, BillItem, Bill, DeliveryMethod } from '@/lib/types';
@@ -123,6 +125,25 @@ export default function OwnerBillingPage() {
       status: 'SENT',
       message: `📱 WhatsApp Web opened for +${cleanPhone || 'customer'}. Click send in WhatsApp to deliver bill!`,
     });
+  };
+
+  // Export Invoice Card as High-Res PNG Image File
+  const handleDownloadBillImage = async (elementId: string, filename: string) => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Failed to export bill image:', err);
+    }
   };
 
   // Dispatch Bill via Server API
@@ -553,7 +574,7 @@ export default function OwnerBillingPage() {
       {/* GENERATED INVOICE PREVIEW MODAL */}
       {generatedInvoice && (
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white text-slate-900 rounded-3xl max-w-lg w-full p-8 space-y-6 shadow-2xl overflow-y-auto max-h-[90vh] print:p-0 print:shadow-none font-mono">
+          <div id="pos-invoice-receipt-card" className="bg-white text-slate-900 rounded-3xl max-w-lg w-full p-8 space-y-6 shadow-2xl overflow-y-auto max-h-[90vh] print:p-0 print:shadow-none font-mono">
             {/* Header */}
             <div className="text-center border-b border-slate-300 pb-4 space-y-1">
               <h2 className="text-2xl font-black tracking-tight">{shop.name}</h2>
@@ -620,10 +641,10 @@ export default function OwnerBillingPage() {
                   <Send className="w-4 h-4" /> 💬 Send via WhatsApp Web
                 </button>
                 <button
-                  onClick={() => handleApiDispatch(generatedInvoice, 'SMS')}
-                  className="bg-slate-800 hover:bg-slate-700 text-teal-400 font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-700 shadow"
+                  onClick={() => handleDownloadBillImage('pos-invoice-receipt-card', `Bill_${generatedInvoice.invoice_number || generatedInvoice.bill_number}.png`)}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow"
                 >
-                  📱 Fast2SMS Route
+                  <ImageIcon className="w-4 h-4" /> 🖼️ Save Bill Image (PNG)
                 </button>
               </div>
 

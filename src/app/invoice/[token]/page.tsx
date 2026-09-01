@@ -3,7 +3,8 @@
 import React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Printer, Download, Store, CheckCircle2, ShieldCheck, ArrowLeft } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { Printer, Download, Store, CheckCircle2, ShieldCheck, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function DigitalInvoicePage() {
@@ -21,6 +22,28 @@ export default function DigitalInvoicePage() {
   );
 
   const invoiceData = matchedOrder || matchedBill;
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownloadImage = async () => {
+    const el = document.getElementById('digital-invoice-card');
+    if (!el) return;
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      const link = document.createElement('a');
+      link.download = `Invoice_${invoiceNo || 'bill'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Failed to export invoice image:', err);
+    }
+  };
 
   if (!invoiceData) {
     return (
@@ -54,31 +77,33 @@ export default function DigitalInvoicePage() {
     minute: '2-digit',
   });
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Navigation & Controls Bar (Hidden on Print) */}
-        <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-4 rounded-2xl print:hidden shadow-lg">
+        <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-4 rounded-2xl print:hidden shadow-lg flex-wrap gap-2">
           <Link href="/" className="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5">
             <ArrowLeft className="w-4 h-4" /> Back to Store
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownloadImage}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow"
+            >
+              <ImageIcon className="w-4 h-4" /> Save PNG Image
+            </button>
             <button
               onClick={handlePrint}
               className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow"
             >
-              <Printer className="w-4 h-4" /> Print / Download PDF Invoice
+              <Printer className="w-4 h-4" /> Print / PDF
             </button>
           </div>
         </div>
 
         {/* SECURE DIGITAL INVOICE CARD */}
-        <div className="bg-white text-slate-900 rounded-3xl p-8 sm:p-10 space-y-6 shadow-2xl font-sans print:shadow-none print:p-0">
+        <div id="digital-invoice-card" className="bg-white text-slate-900 rounded-3xl p-8 sm:p-10 space-y-6 shadow-2xl font-sans print:shadow-none print:p-0">
           {/* Shop Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-6 gap-4">
             <div className="flex items-center gap-3">
