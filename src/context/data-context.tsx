@@ -245,15 +245,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch (e) {}
         }
 
-        // 2. Fetch products via Multi-Device Cloud API (/api/products)
+        // 2. Fetch products & live customer orders via Multi-Device Cloud API
         try {
-          const cloudRes = await fetch('/api/products');
+          const [cloudRes, orderCloudRes] = await Promise.all([
+            fetch('/api/products'),
+            fetch('/api/orders'),
+          ]);
           const cloudData = await cloudRes.json();
           if (cloudData.success && cloudData.products && cloudData.products.length > 0) {
             setProducts(cloudData.products);
           }
+          const orderCloudData = await orderCloudRes.json();
+          if (orderCloudData.success) {
+            if (orderCloudData.orders && orderCloudData.orders.length > 0) setOrders(orderCloudData.orders);
+            if (orderCloudData.bills && orderCloudData.bills.length > 0) setBills(orderCloudData.bills);
+          }
         } catch (err) {
-          console.error('Error fetching products from cloud API:', err);
+          console.error('Error fetching cloud sync API:', err);
         }
 
         // 3. Fetch and merge Supabase database records if configured
@@ -290,19 +298,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initData();
 
-    // Auto-sync products across devices on window focus or 8-second interval
+    // Real-time multi-device auto-sync polling for Products & Customer Orders (every 5 seconds)
     const handleSyncOnFocus = async () => {
       try {
-        const res = await fetch('/api/products');
-        const data = await res.json();
-        if (data.success && data.products && data.products.length > 0) {
-          setProducts(data.products);
+        const [resP, resO] = await Promise.all([fetch('/api/products'), fetch('/api/orders')]);
+        const dataP = await resP.json();
+        if (dataP.success && dataP.products && dataP.products.length > 0) {
+          setProducts(dataP.products);
+        }
+        const dataO = await resO.json();
+        if (dataO.success) {
+          if (dataO.orders && dataO.orders.length > 0) setOrders(dataO.orders);
+          if (dataO.bills && dataO.bills.length > 0) setBills(dataO.bills);
         }
       } catch (e) {}
     };
 
     window.addEventListener('focus', handleSyncOnFocus);
-    const syncInterval = setInterval(handleSyncOnFocus, 8000);
+    const syncInterval = setInterval(handleSyncOnFocus, 5000);
 
     return () => {
       window.removeEventListener('focus', handleSyncOnFocus);
@@ -721,6 +734,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setOrders((prev) => [newOrder, ...prev]);
     saveOrderToSupabase(newOrder);
 
+    // Push new order to Multi-Device Cloud API for instant Owner Dashboard sync
+    try {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'ORDER', data: newOrder }),
+      }).catch(() => {});
+    } catch (e) {}
+
     // Stock deduction
     newOrder.items.forEach((item) => {
       setProducts((prev) =>
@@ -759,6 +781,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+    // Push status update to Multi-Device Cloud API
+    try {
+      fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: newStatus }),
+      }).catch(() => {});
+    } catch (e) {}
+
     setOrders((prev) =>
       prev.map((ord) => {
         if (ord.id === orderId) {
@@ -842,6 +873,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setBills((prev) => [newBill, ...prev]);
     saveBillToSupabase(newBill);
+
+    // Push POS bill to Multi-Device Cloud API
+    try {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'BILL', data: newBill }),
+      }).catch(() => {});
+    } catch (e) {}
 
     newBill.items.forEach((item) => {
       setProducts((prev) =>
