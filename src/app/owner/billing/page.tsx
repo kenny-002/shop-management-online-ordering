@@ -100,7 +100,7 @@ export default function OwnerBillingPage() {
     return 'Please enter a valid 10-digit Indian mobile number (e.g. +91 9876543210).';
   };
 
-  // Direct 1-Click WhatsApp Message Dispatch
+  // Direct 1-Click WhatsApp Message Dispatch with Complete Itemized Receipt Text
   const handleManualWhatsApp = (billObj: Bill) => {
     const phone = billObj.customer_mobile || customerPhone || '';
     let cleanPhone = phone.replace(/\D/g, '');
@@ -110,7 +110,39 @@ export default function OwnerBillingPage() {
       ? `${window.location.origin}${billObj.invoice_url || `/invoice/${billObj.invoice_token}`}`
       : '';
 
-    const messageText = `🧾 *Digital Invoice from ${shop.name}*\n\nBill No: #${billObj.bill_number}\nTotal Amount: ₹${billObj.total}\nCustomer: ${billObj.customer_name}\n\nThank you for shopping with us!\n\nView Your Invoice:\n${invoiceUrl}`;
+    const items = billObj.items || [];
+    let itemsText = '';
+    if (items.length > 0) {
+      itemsText = items
+        .map((it) => `• *${it.product_name}* x ${it.quantity} — ₹${it.subtotal}`)
+        .join('\n');
+    } else {
+      itemsText = `• Counter Purchase — ₹${billObj.total}`;
+    }
+
+    const dateStr = new Date(billObj.created_at || Date.now()).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+
+    const messageText = `🧾 *DIGITAL RECEIPT - ${shop.name.toUpperCase()}*
+----------------------------------------
+*Invoice No:* #${billObj.invoice_number || billObj.bill_number}
+*Date:* ${dateStr}
+*Customer:* ${billObj.customer_name}
+----------------------------------------
+*ITEMS PURCHASED:*
+${itemsText}
+----------------------------------------
+*Subtotal:* ₹${billObj.subtotal}${billObj.discount > 0 ? `\n*Discount:* -₹${billObj.discount}` : ''}
+*GRAND TOTAL:* ₹${billObj.total}
+*Payment:* ${billObj.payment_method} (Paid)
+----------------------------------------
+📄 *View & Download Digital Invoice:*
+${invoiceUrl}
+
+Thank you for shopping with us! 🙏`;
 
     const waUrl = cleanPhone
       ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
@@ -123,7 +155,7 @@ export default function OwnerBillingPage() {
     setDispatchResult({
       success: true,
       status: 'SENT',
-      message: `📱 WhatsApp Web opened for +${cleanPhone || 'customer'}. Click send in WhatsApp to deliver bill!`,
+      message: `📱 Complete itemized bill sent to WhatsApp Web for +${cleanPhone || 'customer'}!`,
     });
   };
 
