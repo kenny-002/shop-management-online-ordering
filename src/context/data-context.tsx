@@ -57,8 +57,7 @@ const INITIAL_SHOP: ShopSettings = {
   name: 'Sri Samundi Store & Tea Stall',
   description:
     'Your local neighborhood store for fresh hot tea, coffee, daily groceries, cold drinks, packaged snacks, and daily home essentials.',
-  logo_url:
-    'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80',
+  logo_url: '/images/shop/sri-samundi-store-front.jpg',
   address: 'Sri Samundi Store & Tea Stall, Main Road',
   phone: '+91 81908 12500',
   email: 'dinesh2122007@gmail.com',
@@ -82,13 +81,13 @@ const INITIAL_SHOP: ShopSettings = {
 };
 
 const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat-1', name: 'Tea & Coffee', image_url: 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=300&q=80' },
-  { id: 'cat-2', name: 'Snacks & Biscuits', image_url: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=300&q=80' },
-  { id: 'cat-3', name: 'Cool Drinks & Beverages', image_url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=300&q=80' },
-  { id: 'cat-4', name: 'Dairy & Milk', image_url: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&w=300&q=80' },
-  { id: 'cat-5', name: 'Rice & Grains', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80' },
-  { id: 'cat-6', name: 'Edible Oils & Ghee', image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80' },
-  { id: 'cat-7', name: 'Spices & Essentials', image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80' },
+  { id: 'cat-1', name: 'Tea & Coffee', image_url: '/images/shop/sri-samundi-counter-display.jpg' },
+  { id: 'cat-2', name: 'Snacks & Biscuits', image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg' },
+  { id: 'cat-3', name: 'Cool Drinks & Ice Creams', image_url: '/images/shop/sri-samundi-board-sign.jpg' },
+  { id: 'cat-4', name: 'Dairy & Milk', image_url: '/images/shop/sri-samundi-store-front.jpg' },
+  { id: 'cat-5', name: 'Rice & Grains', image_url: '/images/shop/sri-samundi-store-inside.jpg' },
+  { id: 'cat-6', name: 'Edible Oils & Ghee', image_url: '/images/shop/sri-samundi-store-inside.jpg' },
+  { id: 'cat-7', name: 'Spices & Essentials', image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg' },
 ];
 
 const INITIAL_PRODUCTS: Product[] = [];
@@ -184,6 +183,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const parsed = JSON.parse(savedShop);
             parsed.name = 'Sri Samundi Store & Tea Stall';
             parsed.phone = '+91 81908 12500';
+            parsed.logo_url = '/images/shop/sri-samundi-store-front.jpg';
             parsed.google_maps_url = 'https://maps.app.goo.gl/92QnYifkpxdVkEv27';
             parsed.opening_hours = '24 Hours Open';
             setShop((prev) => ({ ...prev, ...parsed }));

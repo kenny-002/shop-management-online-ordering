@@ -8,10 +8,11 @@ export default function ShopInfoPage() {
   const { shop } = useData();
 
   const shopPhotos = [
-    { url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80', title: 'Main Store Entrance' },
-    { url: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=600&q=80', title: 'Groceries & Essentials Aisles' },
-    { url: 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=600&q=80', title: 'Organic Produce Section' },
-    { url: 'https://images.unsplash.com/photo-1583258292688-d02132293a81?auto=format&fit=crop&w=600&q=80', title: 'POS Billing Desk' },
+    { url: '/images/shop/sri-samundi-store-front.jpg', title: 'Sri Samundi Main Store Front & MilkyMist Freezer' },
+    { url: '/images/shop/sri-samundi-biscuits-snacks.jpg', title: 'Packaged Snacks, Biscuits & Rusks Counter' },
+    { url: '/images/shop/sri-samundi-store-inside.jpg', title: 'Store Interior & Daily Groceries Shelves' },
+    { url: '/images/shop/sri-samundi-board-sign.jpg', title: 'MilkyMist Sri Samundi Store Signboard' },
+    { url: '/images/shop/sri-samundi-counter-display.jpg', title: 'Tea Stall Counter & Billing Counter' },
   ];
 
   return (
