@@ -821,7 +821,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const billSalesTotal = bills.reduce((acc, b) => acc + b.total, 0);
   const totalSales = orderSalesTotal + billSalesTotal;
 
-  const totalInvestments = investments.reduce((acc, i) => acc + i.amount, 0);
+  // Dynamic Product Inventory Capital Calculation
+  const productStockCapitalTotal = products.reduce(
+    (acc, p) => acc + (Number(p.purchase_price) || 0) * (Number(p.stock_quantity) || 0),
+    0
+  );
+
+  const loggedInvestmentsTotal = investments.reduce((acc, i) => acc + Number(i.amount || 0), 0);
+
+  const stockPurchaseInvestmentsTotal = investments
+    .filter(
+      (i) =>
+        i.category === 'Stock Purchase' ||
+        (i.description &&
+          (i.description.toLowerCase().includes('inventory') || i.description.toLowerCase().includes('stock')))
+    )
+    .reduce((acc, i) => acc + Number(i.amount || 0), 0);
+
+  const nonStockInvestmentsTotal = Math.max(0, loggedInvestmentsTotal - stockPurchaseInvestmentsTotal);
+
+  const totalInvestments = nonStockInvestmentsTotal + Math.max(stockPurchaseInvestmentsTotal, productStockCapitalTotal);
   const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
 
   const orderCOGS = validOrders.reduce(
