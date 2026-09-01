@@ -23,13 +23,16 @@ function sanitizeOrderForDb(order: Order) {
     customer_email: header.customer_email || '',
     customer_phone: header.customer_phone || header.customer_mobile || '',
     customer_mobile: header.customer_mobile || header.customer_phone || '',
-    delivery_address: header.delivery_address || null,
+    delivery_type: header.delivery_type || 'Home Delivery',
+    delivery_address: typeof header.delivery_address === 'object'
+      ? JSON.stringify(header.delivery_address)
+      : header.delivery_address || '',
     subtotal: Number(header.subtotal) || 0,
     discount: Number(header.discount) || 0,
     delivery_charge: Number(header.delivery_charge) || 0,
     total_amount: Number(header.total_amount) || 0,
-    payment_method: header.payment_method || 'CASH',
-    payment_status: header.payment_status || 'PENDING',
+    payment_method: header.payment_method || 'Cash',
+    payment_status: header.payment_status || 'Pending',
     order_status: header.order_status || 'Pending',
     notes: header.notes || '',
     invoice_number: header.invoice_number || '',
@@ -37,7 +40,6 @@ function sanitizeOrderForDb(order: Order) {
     invoice_token: header.invoice_token || '',
     owner_email: 'dinesh2122007@gmail.com',
     created_at: header.created_at || new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   };
 }
 
@@ -45,33 +47,65 @@ function sanitizeOrderForDb(order: Order) {
 export async function GET() {
   try {
     if (isSupabaseConfigured && supabase) {
-      const { data: dbOrders, error: ordErr } = await supabase
+      const { data: dbOrders } = await supabase
         .from('orders')
-        .select('*, order_items(*)')
+        .select('*')
         .order('created_at', { ascending: false });
+
+      const { data: dbOrderItems } = await supabase.from('order_items').select('*');
 
       const { data: dbBills } = await supabase
         .from('bills')
-        .select('*, bill_items(*)')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (!ordErr && dbOrders) {
-        globalOrderStore.length = 0;
+      const { data: dbBillItems } = await supabase.from('bill_items').select('*');
+
+      if (dbOrders && dbOrders.length > 0) {
         dbOrders.forEach((o) => {
-          globalOrderStore.push({
+          let parsedAddress = o.delivery_address;
+          if (typeof o.delivery_address === 'string' && o.delivery_address.trim().startsWith('{')) {
+            try {
+              parsedAddress = JSON.parse(o.delivery_address);
+            } catch (e) {}
+          }
+
+          const relatedItems = dbOrderItems
+            ? dbOrderItems.filter((it) => it.order_id === o.id)
+            : o.items || [];
+
+          const formattedOrd: Order = {
             ...o,
-            items: o.order_items || o.items || [],
-          });
+            delivery_address: parsedAddress,
+            items: relatedItems.length > 0 ? relatedItems : o.items || [],
+          };
+
+          const existingIdx = globalOrderStore.findIndex((existing) => existing.id === o.id);
+          if (existingIdx >= 0) {
+            globalOrderStore[existingIdx] = { ...globalOrderStore[existingIdx], ...formattedOrd };
+          } else {
+            globalOrderStore.push(formattedOrd);
+          }
         });
       }
 
-      if (dbBills) {
-        globalBillStore.length = 0;
+      if (dbBills && dbBills.length > 0) {
         dbBills.forEach((b) => {
-          globalBillStore.push({
+          const relatedItems = dbBillItems
+            ? dbBillItems.filter((it) => it.bill_id === b.id)
+            : b.items || [];
+
+          const formattedBill: Bill = {
             ...b,
-            items: b.bill_items || b.items || [],
-          });
+            items: relatedItems.length > 0 ? relatedItems : b.items || [],
+          };
+
+          const existingIdx = globalBillStore.findIndex((existing) => existing.id === b.id);
+          if (existingIdx >= 0) {
+            globalBillStore[existingIdx] = { ...globalBillStore[existingIdx], ...formattedBill };
+          } else {
+            globalBillStore.push(formattedBill);
+          }
         });
       }
     }

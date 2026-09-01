@@ -298,7 +298,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initData();
 
-    // Real-time multi-device auto-sync polling for Products & Customer Orders (every 5 seconds)
+    // Real-time multi-device auto-sync polling for Products & Customer Orders (every 4 seconds)
     const handleSyncOnFocus = async () => {
       try {
         const [resP, resO] = await Promise.all([fetch('/api/products'), fetch('/api/orders')]);
@@ -308,14 +308,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         const dataO = await resO.json();
         if (dataO.success) {
-          if (dataO.orders && dataO.orders.length > 0) setOrders(dataO.orders);
-          if (dataO.bills && dataO.bills.length > 0) setBills(dataO.bills);
+          if (dataO.orders && dataO.orders.length > 0) {
+            setOrders((prev) => {
+              const map = new Map<string, Order>();
+              prev.forEach((o) => map.set(o.id, o));
+              dataO.orders.forEach((o: Order) => map.set(o.id, o));
+              return Array.from(map.values()).sort(
+                (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+              );
+            });
+          }
+          if (dataO.bills && dataO.bills.length > 0) {
+            setBills((prev) => {
+              const map = new Map<string, Bill>();
+              prev.forEach((b) => map.set(b.id, b));
+              dataO.bills.forEach((b: Bill) => map.set(b.id, b));
+              return Array.from(map.values()).sort(
+                (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+              );
+            });
+          }
         }
       } catch (e) {}
     };
 
     window.addEventListener('focus', handleSyncOnFocus);
-    const syncInterval = setInterval(handleSyncOnFocus, 5000);
+    const syncInterval = setInterval(handleSyncOnFocus, 4000);
 
     return () => {
       window.removeEventListener('focus', handleSyncOnFocus);

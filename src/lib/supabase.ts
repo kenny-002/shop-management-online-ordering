@@ -128,6 +128,15 @@ export async function fetchInvestmentsFromSupabase(): Promise<Investment[] | nul
 
 // --- PERSISTENCE HELPERS ---
 
+export async function saveShopSettingsToSupabase(settings: Partial<ShopSettings>): Promise<void> {
+  if (!supabase) return;
+  try {
+    await supabase.from('shop').upsert(settings);
+  } catch (err: unknown) {
+    console.error('Error saving shop settings to Supabase:', err);
+  }
+}
+
 export async function saveProductToSupabase(product: Product): Promise<void> {
   if (!supabase) return;
   try {
@@ -150,13 +159,32 @@ export async function saveOrderToSupabase(order: Order): Promise<void> {
   if (!supabase) return;
   try {
     const { items, ...orderHeader } = order;
-    const { error } = await supabase.from('orders').upsert(orderHeader);
-    if (error) throw error;
+    const dbOrder = {
+      ...orderHeader,
+      delivery_address: typeof orderHeader.delivery_address === 'object'
+        ? JSON.stringify(orderHeader.delivery_address)
+        : orderHeader.delivery_address || '',
+      customer_mobile: orderHeader.customer_mobile || orderHeader.customer_phone || '',
+      customer_phone: orderHeader.customer_phone || orderHeader.customer_mobile || '',
+      owner_email: 'dinesh2122007@gmail.com',
+      created_at: orderHeader.created_at || new Date().toISOString(),
+    };
+
+    const { error } = await supabase.from('orders').upsert(dbOrder);
+    if (error) {
+      console.error('[Supabase saveOrderToSupabase Error]', error);
+    }
 
     if (items && items.length > 0) {
       const dbItems = items.map((it) => ({
-        ...it,
+        id: it.id || `oi-${Date.now()}-${Math.random()}`,
         order_id: order.id,
+        product_id: it.product_id,
+        product_name: it.product_name,
+        quantity: it.quantity,
+        purchase_price: Number(it.purchase_price) || 0,
+        selling_price: Number(it.selling_price) || 0,
+        subtotal: Number(it.subtotal) || 0,
       }));
       await supabase.from('order_items').upsert(dbItems);
     }
