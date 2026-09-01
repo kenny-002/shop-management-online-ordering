@@ -98,6 +98,33 @@ export default function OwnerBillingPage() {
     return 'Please enter a valid 10-digit Indian mobile number (e.g. +91 9876543210).';
   };
 
+  // Direct 1-Click WhatsApp Message Dispatch
+  const handleManualWhatsApp = (billObj: Bill) => {
+    const phone = billObj.customer_mobile || customerPhone || '';
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+
+    const invoiceUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}${billObj.invoice_url || `/invoice/${billObj.invoice_token}`}`
+      : '';
+
+    const messageText = `🧾 *Digital Invoice from ${shop.name}*\n\nBill No: #${billObj.bill_number}\nTotal Amount: ₹${billObj.total}\nCustomer: ${billObj.customer_name}\n\nThank you for shopping with us!\n\nView Your Invoice:\n${invoiceUrl}`;
+
+    const waUrl = cleanPhone
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
+      : `https://wa.me/?text=${encodeURIComponent(messageText)}`;
+
+    if (typeof window !== 'undefined') {
+      window.open(waUrl, '_blank');
+    }
+
+    setDispatchResult({
+      success: true,
+      status: 'SENT',
+      message: `📱 WhatsApp Web opened for +${cleanPhone || 'customer'}. Click send in WhatsApp to deliver bill!`,
+    });
+  };
+
   // Dispatch Bill via Server API
   const handleApiDispatch = async (billObj: Bill, method: DeliveryMethod) => {
     setIsSending(true);
@@ -119,11 +146,8 @@ export default function OwnerBillingPage() {
         message: `✅ Bill sent successfully to customer (${billObj.customer_mobile || customerPhone}).`,
       });
     } else {
-      setDispatchResult({
-        success: false,
-        status: 'FAILED',
-        error: res.error || '❌ Bill could not be sent.',
-      });
+      // If API dispatch fails (e.g. Fast2SMS error), offer manual WhatsApp opening automatically
+      handleManualWhatsApp(billObj);
     }
   };
 
@@ -167,9 +191,9 @@ export default function OwnerBillingPage() {
     setGeneratedInvoice(bill);
     setBillCart([]);
 
-    // Automatically trigger notification dispatch if phone is provided
+    // Trigger direct manual WhatsApp message dispatch if customer phone is entered
     if (customerPhone.trim()) {
-      await handleApiDispatch(bill, shop.preferred_delivery_method || 'WHATSAPP');
+      handleManualWhatsApp(bill);
     }
   };
 
@@ -509,9 +533,9 @@ export default function OwnerBillingPage() {
                             <ExternalLink className="w-3.5 h-3.5" />
                           </Link>
                           <button
-                            onClick={() => handleApiDispatch(bill, 'WHATSAPP')}
+                            onClick={() => handleManualWhatsApp(bill)}
                             className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 p-1.5 rounded-lg border border-emerald-500/30"
-                            title="Send via WhatsApp API"
+                            title="Send Digital Invoice via WhatsApp Web"
                           >
                             <Send className="w-3.5 h-3.5" />
                           </button>
@@ -586,26 +610,20 @@ export default function OwnerBillingPage() {
               <p className="text-[10px]">Visit again at {shop.name}</p>
             </div>
 
-            {/* Action Buttons: 5 BUTTONS (Send to Mobile, WhatsApp, SMS, Download PDF, Print) */}
+            {/* Action Buttons */}
             <div className="space-y-3 print:hidden pt-4 border-t font-sans">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleApiDispatch(generatedInvoice, 'WHATSAPP')}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 shadow"
+                  onClick={() => handleManualWhatsApp(generatedInvoice)}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow"
                 >
-                  <Send className="w-3.5 h-3.5" /> 📱 Send Mobile
-                </button>
-                <button
-                  onClick={() => handleApiDispatch(generatedInvoice, 'WHATSAPP')}
-                  className="bg-teal-600 hover:bg-teal-500 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 shadow"
-                >
-                  WhatsApp
+                  <Send className="w-4 h-4" /> 💬 Send via WhatsApp Web
                 </button>
                 <button
                   onClick={() => handleApiDispatch(generatedInvoice, 'SMS')}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1 shadow"
+                  className="bg-slate-800 hover:bg-slate-700 text-teal-400 font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-700 shadow"
                 >
-                  SMS
+                  📱 Fast2SMS Route
                 </button>
               </div>
 
