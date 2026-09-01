@@ -436,6 +436,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProducts((prev) => [newProduct, ...prev]);
     saveProductToSupabase(newProduct);
 
+    // 1. Stock Movement record
     if (newProduct.stock_quantity > 0) {
       const movement: StockMovement = {
         id: `sm-${Date.now()}`,
@@ -448,6 +449,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setStockMovements((prev) => [movement, ...prev]);
       saveStockMovementToSupabase(movement);
+    }
+
+    // 2. Automatically record Investment amount for stock capital
+    const totalStockInvestment = (newProduct.purchase_price || 0) * (newProduct.stock_quantity || 0);
+    if (totalStockInvestment > 0) {
+      const invRecord: Investment = {
+        id: `inv-${Date.now()}`,
+        amount: totalStockInvestment,
+        category: 'Stock Purchase',
+        description: `Initial product inventory: ${newProduct.name} (${newProduct.stock_quantity} units @ ₹${newProduct.purchase_price})`,
+        date: new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+      };
+      setInvestments((prev) => [invRecord, ...prev]);
+      saveInvestmentToSupabase(invRecord);
     }
   };
 
@@ -483,17 +499,36 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (updatedProd) saveProductToSupabase(updatedProd);
 
     const prod = products.find((p) => p.id === id);
-    const movement: StockMovement = {
-      id: `sm-${Date.now()}`,
-      product_id: id,
-      product_name: prod?.name || 'Product',
-      quantity: qty,
-      movement_type: 'PURCHASE',
-      note: note || `Restocked ${qty} units`,
-      created_at: new Date().toISOString(),
-    };
-    setStockMovements((prev) => [movement, ...prev]);
-    saveStockMovementToSupabase(movement);
+
+    if (prod) {
+      // Stock movement record
+      const movement: StockMovement = {
+        id: `sm-${Date.now()}`,
+        product_id: id,
+        product_name: prod.name,
+        quantity: qty,
+        movement_type: 'PURCHASE',
+        note: note || `Restocked ${qty} units`,
+        created_at: new Date().toISOString(),
+      };
+      setStockMovements((prev) => [movement, ...prev]);
+      saveStockMovementToSupabase(movement);
+
+      // Automatically record restock Investment amount
+      const restockInvestment = (prod.purchase_price || 0) * qty;
+      if (restockInvestment > 0) {
+        const invRecord: Investment = {
+          id: `inv-${Date.now()}`,
+          amount: restockInvestment,
+          category: 'Stock Purchase',
+          description: `Restock inventory: ${prod.name} (${qty} units @ ₹${prod.purchase_price})`,
+          date: new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+        };
+        setInvestments((prev) => [invRecord, ...prev]);
+        saveInvestmentToSupabase(invRecord);
+      }
+    }
   };
 
   // Cart Actions
