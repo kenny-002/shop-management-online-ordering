@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Mail, Store, ShieldCheck, ArrowRight } from 'lucide-react';
@@ -8,7 +8,13 @@ import { useData } from '@/context/data-context';
 
 export default function OwnerLoginPage() {
   const router = useRouter();
-  const { shop, loginOwner } = useData();
+  const { shop, loginOwner, isOwnerLoggedIn, isLoaded } = useData();
+
+  useEffect(() => {
+    if (isLoaded && isOwnerLoggedIn) {
+      router.push('/owner/dashboard');
+    }
+  }, [isLoaded, isOwnerLoggedIn, router]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

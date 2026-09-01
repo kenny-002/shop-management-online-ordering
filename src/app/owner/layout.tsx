@@ -22,25 +22,35 @@ import {
   AlertTriangle,
   ChevronRight,
   ShieldAlert,
+  Loader2,
 } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { shop, isOwnerLoggedIn, logoutOwner, lowStockProducts, orders } = useData();
+  const { shop, isOwnerLoggedIn, logoutOwner, lowStockProducts, orders, isLoaded } = useData();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  // Redirect to login if not logged in on owner pages (except /owner/login)
+  // Redirect to login if not logged in on owner pages (only AFTER initial storage load completes)
   useEffect(() => {
-    if (!isOwnerLoggedIn && pathname !== '/owner/login') {
+    if (isLoaded && !isOwnerLoggedIn && pathname !== '/owner/login') {
       router.push('/owner/login');
     }
-  }, [isOwnerLoggedIn, pathname, router]);
+  }, [isLoaded, isOwnerLoggedIn, pathname, router]);
 
   if (pathname === '/owner/login') {
     return <>{children}</>;
+  }
+
+  // Prevent transient flashing or kickouts while initial storage is loading
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-emerald-400 font-mono text-xs gap-2">
+        <Loader2 className="w-5 h-5 animate-spin" /> Verifying Owner Portal Session...
+      </div>
+    );
   }
 
   const pendingOrdersCount = orders.filter((o) => o.order_status === 'Pending').length;
