@@ -383,7 +383,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
           ]);
           const cloudData = await cloudRes.json();
           if (cloudData.success && cloudData.products && cloudData.products.length > 0) {
-            setProducts(cloudData.products);
+            setProducts((prev) => {
+              const map = new Map<string, Product>();
+              prev.forEach((p) => map.set(p.id, p));
+              cloudData.products.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
+              return Array.from(map.values());
+            });
           }
           const orderCloudData = await orderCloudRes.json();
           if (orderCloudData.success) {
@@ -402,7 +407,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
           }
 
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts && dbProducts.length > 0) setProducts(dbProducts);
+          if (dbProducts && dbProducts.length > 0) {
+            setProducts((prev) => {
+              const map = new Map<string, Product>();
+              prev.forEach((p) => map.set(p.id, p));
+              dbProducts.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
+              return Array.from(map.values());
+            });
+          }
 
           const dbCategories = await fetchCategoriesFromSupabase();
           if (dbCategories && dbCategories.length > 0) {
@@ -442,7 +454,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const [resP, resO] = await Promise.all([fetch('/api/products'), fetch('/api/orders')]);
         const dataP = await resP.json();
         if (dataP.success && dataP.products && dataP.products.length > 0) {
-          setProducts(dataP.products);
+          setProducts((prev) => {
+            const map = new Map<string, Product>();
+            prev.forEach((p) => map.set(p.id, p));
+            dataP.products.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
+            return Array.from(map.values());
+          });
         }
         const dataO = await resO.json();
         if (dataO.success) {
