@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         const raw10DigitPhone = cleanPhone.startsWith('91') && cleanPhone.length === 12 ? cleanPhone.slice(2) : cleanPhone;
 
         // Try POST first
-        let smsRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        const smsRes = await fetch('https://www.fast2sms.com/dev/bulkV2', {
           method: 'POST',
           headers: {
             authorization: smsApiKey,

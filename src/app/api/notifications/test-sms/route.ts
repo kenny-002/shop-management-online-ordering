@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     if (provider === 'fast2sms') {
       // Try POST first
-      let res = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+      const res = await fetch('https://www.fast2sms.com/dev/bulkV2', {
         method: 'POST',
         headers: {
           authorization: testApiKey,
