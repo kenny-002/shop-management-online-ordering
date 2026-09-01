@@ -81,13 +81,13 @@ const INITIAL_SHOP: ShopSettings = {
 };
 
 const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat-1', name: 'Tea & Coffee', image_url: '/images/shop/sri-samundi-counter-display.jpg' },
-  { id: 'cat-2', name: 'Snacks & Biscuits', image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg' },
-  { id: 'cat-3', name: 'Cool Drinks & Ice Creams', image_url: '/images/shop/sri-samundi-board-sign.jpg' },
-  { id: 'cat-4', name: 'Dairy & Milk', image_url: '/images/shop/sri-samundi-store-front.jpg' },
-  { id: 'cat-5', name: 'Rice & Grains', image_url: '/images/shop/sri-samundi-store-inside.jpg' },
-  { id: 'cat-6', name: 'Edible Oils & Ghee', image_url: '/images/shop/sri-samundi-store-inside.jpg' },
-  { id: 'cat-7', name: 'Spices & Essentials', image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg' },
+  { id: 'cat-1', name: 'Tea & Coffee', image_url: 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80' },
+  { id: 'cat-2', name: 'Snacks & Biscuits', image_url: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=400&q=80' },
+  { id: 'cat-3', name: 'Cool Drinks & Ice Creams', image_url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=400&q=80' },
+  { id: 'cat-4', name: 'Dairy & Milk', image_url: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&w=400&q=80' },
+  { id: 'cat-5', name: 'Rice & Grains', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=400&q=80' },
+  { id: 'cat-6', name: 'Edible Oils & Ghee', image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80' },
+  { id: 'cat-7', name: 'Spices & Essentials', image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=400&q=80' },
 ];
 
 const INITIAL_PRODUCTS: Product[] = [];
@@ -275,7 +275,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (dbProducts && dbProducts.length > 0) setProducts(dbProducts);
 
           const dbCategories = await fetchCategoriesFromSupabase();
-          if (dbCategories && dbCategories.length > 0) setCategories(dbCategories);
+          if (dbCategories && dbCategories.length > 0) {
+            const mapped = dbCategories.map((c) => {
+              const match = INITIAL_CATEGORIES.find((ic) => ic.id === c.id || ic.name.toLowerCase() === c.name.toLowerCase());
+              return match ? { ...c, image_url: match.image_url } : c;
+            });
+            setCategories(mapped);
+          } else {
+            setCategories(INITIAL_CATEGORIES);
+          }
 
           const dbOrders = await fetchOrdersFromSupabase();
           if (dbOrders && dbOrders.length > 0) setOrders(dbOrders);
