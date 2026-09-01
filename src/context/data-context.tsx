@@ -752,12 +752,51 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setOrders((prev) => [newOrder, ...prev]);
     saveOrderToSupabase(newOrder);
 
-    // Push new order to Multi-Device Cloud API for instant Owner Dashboard sync
+    // Automatically record corresponding Bill in Bill History for online & UPI payments
+    const newBill: Bill = {
+      id: `bill-ord-${Date.now()}`,
+      bill_number: invoiceNumber,
+      customer_name: newOrder.customer_name || 'Online Customer',
+      customer_phone: newOrder.customer_phone || newOrder.customer_mobile,
+      customer_mobile: newOrder.customer_mobile || newOrder.customer_phone || '',
+      items: newOrder.items.map((it) => ({
+        id: it.id || `bi-${Date.now()}-${Math.random()}`,
+        bill_id: `bill-ord-${Date.now()}`,
+        product_id: it.product_id,
+        product_name: it.product_name,
+        quantity: it.quantity,
+        purchase_price: it.purchase_price,
+        selling_price: it.selling_price,
+        subtotal: it.subtotal,
+      })),
+      subtotal: newOrder.subtotal,
+      discount: newOrder.discount || 0,
+      delivery_charge: newOrder.delivery_charge || 0,
+      total: newOrder.total_amount,
+      payment_method: newOrder.payment_method === 'UPI' ? 'UPI' : 'Cash',
+      invoice_number: invoiceNumber,
+      invoice_token: invoiceToken,
+      invoice_url: invoiceUrl,
+      invoice_generated_at: new Date().toISOString(),
+      invoice_delivery_status: 'SENT',
+      created_at: new Date().toISOString(),
+    };
+
+    setBills((prev) => [newBill, ...prev]);
+    saveBillToSupabase(newBill);
+
+    // Push new order and bill to Multi-Device Cloud API for instant Owner Dashboard sync
     try {
       fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'ORDER', data: newOrder }),
+      }).catch(() => {});
+
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'BILL', data: newBill }),
       }).catch(() => {});
     } catch (e) {}
 
