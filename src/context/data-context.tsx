@@ -173,86 +173,102 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [registeredCustomers, setRegisteredCustomers] = useState<CustomerProfile[]>(INITIAL_REGISTERED_CUSTOMERS);
   const [currentCustomer, setCurrentCustomer] = useState<CustomerProfile | null>(null);
 
-  // Load from Supabase DB or localStorage ONCE on mount
+  // Load from LocalStorage + Supabase DB on mount for 100% data persistence
   useEffect(() => {
     async function initData() {
       try {
-        if (isSupabaseConfigured) {
-          const dbShop = await fetchShopFromSupabase();
-          if (dbShop) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setShop((prev) => ({ ...prev, ...dbShop }));
-          }
-
-          const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts) setProducts(dbProducts);
-
-          const dbCategories = await fetchCategoriesFromSupabase();
-          if (dbCategories) setCategories(dbCategories);
-
-          const dbOrders = await fetchOrdersFromSupabase();
-          if (dbOrders) setOrders(dbOrders);
-
-          const dbBills = await fetchBillsFromSupabase();
-          if (dbBills) setBills(dbBills);
-
-          const dbExpenses = await fetchExpensesFromSupabase();
-          if (dbExpenses) setExpenses(dbExpenses);
-
-          const dbInvestments = await fetchInvestmentsFromSupabase();
-          if (dbInvestments) setInvestments(dbInvestments);
-        }
-
+        // 1. ALWAYS load local storage data first so data is retained on refresh
         const savedShop = localStorage.getItem('shop_data');
         if (savedShop) {
-          const parsed = JSON.parse(savedShop);
-          parsed.name = 'Sri Samundi Store & Tea Stall';
-          parsed.phone = '+91 81908 12500';
-          parsed.google_maps_url = 'https://maps.app.goo.gl/92QnYifkpxdVkEv27';
-          parsed.opening_hours = '24 Hours Open';
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setShop((prev) => ({ ...prev, ...parsed }));
+          try {
+            const parsed = JSON.parse(savedShop);
+            parsed.name = 'Sri Samundi Store & Tea Stall';
+            parsed.phone = '+91 81908 12500';
+            parsed.google_maps_url = 'https://maps.app.goo.gl/92QnYifkpxdVkEv27';
+            parsed.opening_hours = '24 Hours Open';
+            setShop((prev) => ({ ...prev, ...parsed }));
+          } catch (e) {}
         }
 
         const savedProducts = localStorage.getItem('products_data');
-        if (savedProducts && !isSupabaseConfigured) {
-          setProducts(JSON.parse(savedProducts));
+        if (savedProducts) {
+          try { setProducts(JSON.parse(savedProducts)); } catch (e) {}
         }
 
         const savedOrders = localStorage.getItem('orders_data');
-        if (savedOrders && !isSupabaseConfigured) setOrders(JSON.parse(savedOrders));
+        if (savedOrders) {
+          try { setOrders(JSON.parse(savedOrders)); } catch (e) {}
+        }
 
         const savedInvestments = localStorage.getItem('investments_data');
-        if (savedInvestments && !isSupabaseConfigured) setInvestments(JSON.parse(savedInvestments));
+        if (savedInvestments) {
+          try { setInvestments(JSON.parse(savedInvestments)); } catch (e) {}
+        }
 
         const savedExpenses = localStorage.getItem('expenses_data');
-        if (savedExpenses && !isSupabaseConfigured) setExpenses(JSON.parse(savedExpenses));
+        if (savedExpenses) {
+          try { setExpenses(JSON.parse(savedExpenses)); } catch (e) {}
+        }
 
         const savedBills = localStorage.getItem('bills_data');
-        if (savedBills && !isSupabaseConfigured) setBills(JSON.parse(savedBills));
+        if (savedBills) {
+          try { setBills(JSON.parse(savedBills)); } catch (e) {}
+        }
 
         const savedCart = localStorage.getItem('cart_data');
-        if (savedCart) setCart(JSON.parse(savedCart));
+        if (savedCart) {
+          try { setCart(JSON.parse(savedCart)); } catch (e) {}
+        }
 
         const savedAuth = localStorage.getItem('owner_auth');
         if (savedAuth === 'true') setIsOwnerLoggedIn(true);
 
         const savedRegisteredCusts = localStorage.getItem('registered_customers_data');
         if (savedRegisteredCusts) {
-          const parsedCusts: CustomerProfile[] = JSON.parse(savedRegisteredCusts);
-          const filtered = parsedCusts.filter((c) => c.id !== 'cust-demo-1' && c.email !== 'ramesh.customer@example.com');
-          setRegisteredCustomers(filtered);
+          try {
+            const parsedCusts: CustomerProfile[] = JSON.parse(savedRegisteredCusts);
+            const filtered = parsedCusts.filter((c) => c.id !== 'cust-demo-1' && c.email !== 'ramesh.customer@example.com');
+            setRegisteredCustomers(filtered);
+          } catch (e) {}
         }
 
         const savedCust = localStorage.getItem('customer_user');
         if (savedCust) {
-          const parsedCust: CustomerProfile = JSON.parse(savedCust);
-          if (parsedCust && parsedCust.id !== 'cust-demo-1' && parsedCust.email !== 'ramesh.customer@example.com') {
-            setCurrentCustomer(parsedCust);
-          } else {
-            localStorage.removeItem('customer_user');
-            setCurrentCustomer(null);
+          try {
+            const parsedCust: CustomerProfile = JSON.parse(savedCust);
+            if (parsedCust && parsedCust.id !== 'cust-demo-1' && parsedCust.email !== 'ramesh.customer@example.com') {
+              setCurrentCustomer(parsedCust);
+            } else {
+              localStorage.removeItem('customer_user');
+              setCurrentCustomer(null);
+            }
+          } catch (e) {}
+        }
+
+        // 2. Fetch and merge Supabase database records if configured
+        if (isSupabaseConfigured) {
+          const dbShop = await fetchShopFromSupabase();
+          if (dbShop && Object.keys(dbShop).length > 0) {
+            setShop((prev) => ({ ...prev, ...dbShop }));
           }
+
+          const dbProducts = await fetchProductsFromSupabase();
+          if (dbProducts && dbProducts.length > 0) setProducts(dbProducts);
+
+          const dbCategories = await fetchCategoriesFromSupabase();
+          if (dbCategories && dbCategories.length > 0) setCategories(dbCategories);
+
+          const dbOrders = await fetchOrdersFromSupabase();
+          if (dbOrders && dbOrders.length > 0) setOrders(dbOrders);
+
+          const dbBills = await fetchBillsFromSupabase();
+          if (dbBills && dbBills.length > 0) setBills(dbBills);
+
+          const dbExpenses = await fetchExpensesFromSupabase();
+          if (dbExpenses && dbExpenses.length > 0) setExpenses(dbExpenses);
+
+          const dbInvestments = await fetchInvestmentsFromSupabase();
+          if (dbInvestments && dbInvestments.length > 0) setInvestments(dbInvestments);
         }
       } catch (e) {
         console.error('Error loading initial data:', e);
