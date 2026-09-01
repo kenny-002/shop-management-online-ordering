@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
   ShopSettings,
   Category,
@@ -90,7 +90,120 @@ const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-7', name: 'Spices & Essentials', image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=400&q=80' },
 ];
 
-const INITIAL_PRODUCTS: Product[] = [];
+const INITIAL_PRODUCTS: Product[] = [
+  {
+    id: 'p-samundi-1',
+    name: 'Special Masala Milk Tea (Cup)',
+    category_id: 'cat-1',
+    brand: 'Sri Samundi',
+    description: 'Fresh hot brewed ginger cardamom masala tea',
+    purchase_price: 6,
+    selling_price: 12,
+    stock_quantity: 100,
+    low_stock_limit: 20,
+    image_url: '/images/shop/sri-samundi-counter-display.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-samundi-2',
+    name: 'Filter Coffee (Cup)',
+    category_id: 'cat-1',
+    brand: 'Sri Samundi',
+    description: 'Authentic South Indian aromatic filter coffee',
+    purchase_price: 8,
+    selling_price: 15,
+    stock_quantity: 80,
+    low_stock_limit: 15,
+    image_url: '/images/shop/sri-samundi-counter-display.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-samundi-3',
+    name: 'Butter Milk Rusk & Biscuit Pack',
+    category_id: 'cat-2',
+    brand: 'Sri Samundi / Britannia',
+    description: 'Crispy tea time snack biscuits & rusks',
+    purchase_price: 8,
+    selling_price: 10,
+    stock_quantity: 60,
+    low_stock_limit: 10,
+    image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-samundi-4',
+    name: 'Full Cream Milk Packet 500ml',
+    category_id: 'cat-4',
+    brand: 'Aavin / Amul',
+    description: 'Fresh pasteurized daily milk packet',
+    purchase_price: 24,
+    selling_price: 28,
+    stock_quantity: 40,
+    low_stock_limit: 10,
+    image_url: '/images/shop/sri-samundi-store-front.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-samundi-5',
+    name: 'MilkyMist Ice Cream Cone / Tub',
+    category_id: 'cat-3',
+    brand: 'MilkyMist',
+    description: 'Delicious chilled ice cream cone & tub',
+    purchase_price: 30,
+    selling_price: 40,
+    stock_quantity: 35,
+    low_stock_limit: 8,
+    image_url: '/images/shop/sri-samundi-board-sign.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-samundi-6',
+    name: 'Chilled Soft Drink Bottle 500ml',
+    category_id: 'cat-3',
+    brand: 'Thums Up / Coca-Cola',
+    description: 'Refreshing cold soft drink bottle',
+    purchase_price: 32,
+    selling_price: 40,
+    stock_quantity: 30,
+    low_stock_limit: 5,
+    image_url: '/images/shop/sri-samundi-board-sign.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-samundi-7',
+    name: 'Bisleri Mineral Water Bottle 1L',
+    category_id: 'cat-3',
+    brand: 'Bisleri',
+    description: 'Pure packaged drinking water bottle 1 Litre',
+    purchase_price: 14,
+    selling_price: 20,
+    stock_quantity: 50,
+    low_stock_limit: 10,
+    image_url: '/images/shop/sri-samundi-store-inside.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-samundi-8',
+    name: 'Crispy South Indian Murukku Pack',
+    category_id: 'cat-2',
+    brand: 'Sri Samundi',
+    description: 'Fresh homemade crunchy savoury murukku snack',
+    purchase_price: 20,
+    selling_price: 30,
+    stock_quantity: 45,
+    low_stock_limit: 10,
+    image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg',
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+];
 const INITIAL_INVESTMENTS: Investment[] = [];
 const INITIAL_EXPENSES: Expense[] = [];
 const INITIAL_ORDERS: Order[] = [];
@@ -118,14 +231,13 @@ interface DataContextType {
     identifier: string,
     pass: string
   ) => { success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile };
+  updateCustomerProfile: (fields: Partial<CustomerProfile>) => void;
   logoutCustomer: () => void;
-  updateCustomerProfile: (profile: Partial<CustomerProfile>) => void;
 
   loginOwner: () => void;
   logoutOwner: () => void;
-  updateShopSettings: (settings: Partial<ShopSettings>) => void;
-  clearAllDemoData: () => void;
 
+  updateShopSettings: (settings: Partial<ShopSettings>) => void;
   addProduct: (product: Omit<Product, 'id'>) => void;
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
@@ -136,27 +248,38 @@ interface DataContextType {
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
 
-  createOrder: (orderData: Omit<Order, 'id' | 'order_number' | 'created_at'>) => Order;
+  createOrder: (order: Omit<Order, 'id' | 'order_number' | 'created_at'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
-  dispatchBillNotification: (target: Order | Bill, method?: DeliveryMethod) => Promise<{ success: boolean; status: string; error?: string }>;
 
   addInvestment: (investment: Omit<Investment, 'id'>) => void;
   addExpense: (expense: Omit<Expense, 'id'>) => void;
-  createBill: (billData: Omit<Bill, 'id' | 'bill_number' | 'created_at' | 'invoice_number' | 'invoice_url' | 'invoice_token' | 'invoice_generated_at' | 'invoice_delivery_status'>) => Bill;
 
+  createBill: (
+    bill: Omit<Bill, 'id' | 'bill_number' | 'created_at' | 'invoice_number' | 'invoice_url' | 'invoice_token' | 'invoice_generated_at' | 'invoice_delivery_status'>
+  ) => Bill;
+
+  dispatchBillNotification: (
+    target: Order | Bill,
+    method?: DeliveryMethod
+  ) => Promise<{ success: boolean; status: string; error?: string }>;
+
+  clearAllDemoData: () => void;
+
+  // Financial Metrics
   totalSales: number;
   totalInvestments: number;
   totalExpenses: number;
   totalProductCostOfSales: number;
   grossProfit: number;
   netProfit: number;
+  totalProfitMargin: number;
   lowStockProducts: Product[];
   outOfStockProducts: Product[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function DataProvider({ children }: { children: ReactNode }) {
   const [shop, setShop] = useState<ShopSettings>(INITIAL_SHOP);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
@@ -166,13 +289,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
   const [bills, setBills] = useState<Bill[]>([]);
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
-  const [isOwnerLoggedIn, setIsOwnerLoggedIn] = useState<boolean>(false);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const [registeredCustomers, setRegisteredCustomers] = useState<CustomerProfile[]>(INITIAL_REGISTERED_CUSTOMERS);
   const [currentCustomer, setCurrentCustomer] = useState<CustomerProfile | null>(null);
 
-  // Load from LocalStorage + Supabase DB on mount for 100% data persistence
+  const [isOwnerLoggedIn, setIsOwnerLoggedIn] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Initialize data from localStorage & sync Supabase / Cloud API
   useEffect(() => {
     async function initData() {
       try {
@@ -181,18 +305,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (savedShop) {
           try {
             const parsed = JSON.parse(savedShop);
-            parsed.name = 'Sri Samundi Store & Tea Stall';
-            parsed.phone = '+91 81908 12500';
-            parsed.logo_url = '/images/shop/sri-samundi-store-front.jpg';
-            parsed.google_maps_url = 'https://maps.app.goo.gl/92QnYifkpxdVkEv27';
-            parsed.opening_hours = '24 Hours Open';
             setShop((prev) => ({ ...prev, ...parsed }));
           } catch (e) {}
         }
 
         const savedProducts = localStorage.getItem('products_data');
         if (savedProducts) {
-          try { setProducts(JSON.parse(savedProducts)); } catch (e) {}
+          try {
+            const parsedProds = JSON.parse(savedProducts);
+            if (Array.isArray(parsedProds) && parsedProds.length > 0) {
+              setProducts(parsedProds);
+            } else {
+              setProducts(INITIAL_PRODUCTS);
+            }
+          } catch (e) {
+            setProducts(INITIAL_PRODUCTS);
+          }
+        } else {
+          setProducts(INITIAL_PRODUCTS);
         }
 
         const savedOrders = localStorage.getItem('orders_data');
@@ -1015,6 +1145,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const grossProfit = totalSales - totalProductCostOfSales;
   const netProfit = grossProfit - totalExpenses;
+  const totalProfitMargin = totalSales > 0 ? (netProfit / totalSales) * 100 : 0;
 
   const lowStockProducts = products.filter((p) => p.stock_quantity > 0 && p.stock_quantity <= p.low_stock_limit);
   const outOfStockProducts = products.filter((p) => p.stock_quantity <= 0);
@@ -1064,6 +1195,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totalProductCostOfSales,
         grossProfit,
         netProfit,
+        totalProfitMargin,
         lowStockProducts,
         outOfStockProducts,
       }}
