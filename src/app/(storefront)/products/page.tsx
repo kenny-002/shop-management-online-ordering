@@ -272,9 +272,27 @@ function ProductCatalogContent() {
   );
 }
 
+function CatalogSkeleton() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-12 space-y-8 animate-pulse">
+      <div className="h-10 bg-slate-800/80 rounded-2xl w-64 mx-auto" />
+      <div className="h-12 bg-slate-800/80 rounded-2xl w-full max-w-xl mx-auto" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+          <div key={n} className="bg-slate-900 border border-slate-800/80 rounded-3xl h-80 overflow-hidden space-y-4 p-4">
+            <div className="bg-slate-800/60 h-44 rounded-2xl w-full" />
+            <div className="bg-slate-800/60 h-5 rounded-lg w-3/4" />
+            <div className="bg-slate-800/60 h-4 rounded-lg w-1/2" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="text-center py-20 text-slate-400">Loading catalog...</div>}>
+    <Suspense fallback={<CatalogSkeleton />}>
       <ProductCatalogContent />
     </Suspense>
   );
