@@ -351,7 +351,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
 
         const savedAuth = localStorage.getItem('owner_auth');
-        if (savedAuth === 'true') setIsOwnerLoggedIn(true);
+        if (savedAuth === 'true') {
+          setIsOwnerLoggedIn(true);
+          if (typeof document !== 'undefined') {
+            document.cookie = "owner_auth=true; path=/; max-age=86400; SameSite=Lax";
+          }
+        }
 
         const savedRegisteredCusts = localStorage.getItem('registered_customers_data');
         if (savedRegisteredCusts) {
@@ -629,11 +634,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const loginOwner = () => {
     setIsOwnerLoggedIn(true);
     localStorage.setItem('owner_auth', 'true');
+    if (typeof document !== 'undefined') {
+      document.cookie = "owner_auth=true; path=/; max-age=86400; SameSite=Lax";
+    }
   };
 
   const logoutOwner = () => {
     setIsOwnerLoggedIn(false);
     localStorage.removeItem('owner_auth');
+    if (typeof document !== 'undefined') {
+      document.cookie = "owner_auth=; path=/; max-age=0; SameSite=Lax";
+    }
   };
 
   const updateShopSettings = (settings: Partial<ShopSettings>) => {

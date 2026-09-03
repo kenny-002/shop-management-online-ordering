@@ -202,6 +202,12 @@ export async function POST(req: NextRequest) {
 // PUT /api/orders - Updates order status (e.g., Pending -> Confirmed -> Delivered) across all devices
 export async function PUT(req: NextRequest) {
   try {
+    const authCookie = req.cookies.get('owner_auth')?.value;
+    const authHeader = req.headers.get('x-owner-auth');
+    if (authCookie !== 'true' && authHeader !== 'true') {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Owner access required' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { orderId, status } = body;
 

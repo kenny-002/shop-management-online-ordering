@@ -68,6 +68,12 @@ export async function GET() {
 // POST /api/products - Saves/upserts a product from any owner device
 export async function POST(req: NextRequest) {
   try {
+    const authCookie = req.cookies.get('owner_auth')?.value;
+    const authHeader = req.headers.get('x-owner-auth');
+    if (authCookie !== 'true' && authHeader !== 'true') {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Owner access required' }, { status: 401 });
+    }
+
     const product: Product = await req.json();
 
     if (!product || !product.id || !product.name) {
@@ -101,6 +107,12 @@ export async function POST(req: NextRequest) {
 // DELETE /api/products - Deletes a product by ID across all devices
 export async function DELETE(req: NextRequest) {
   try {
+    const authCookie = req.cookies.get('owner_auth')?.value;
+    const authHeader = req.headers.get('x-owner-auth');
+    if (authCookie !== 'true' && authHeader !== 'true') {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Owner access required' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
