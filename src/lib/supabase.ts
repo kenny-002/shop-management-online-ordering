@@ -33,7 +33,7 @@ export async function fetchShopFromSupabase(): Promise<Partial<ShopSettings> | n
     if (error || !data) return null;
     return data as Partial<ShopSettings>;
   } catch (err: unknown) {
-    console.error('Error fetching shop from Supabase:', err);
+    console.warn('[Supabase fetchShop Notice]', err);
     return null;
   }
 }
@@ -45,7 +45,7 @@ export async function fetchProductsFromSupabase(): Promise<Product[] | null> {
     if (error || !data) return null;
     return data as Product[];
   } catch (err: unknown) {
-    console.error('Error fetching products from Supabase:', err);
+    console.warn('[Supabase fetchProducts Notice]', err);
     return null;
   }
 }
@@ -57,7 +57,7 @@ export async function fetchCategoriesFromSupabase(): Promise<Category[] | null> 
     if (error || !data || data.length === 0) return null;
     return data as Category[];
   } catch (err: unknown) {
-    console.error('Error fetching categories from Supabase:', err);
+    console.warn('[Supabase fetchCategories Notice]', err);
     return null;
   }
 }
@@ -77,7 +77,7 @@ export async function fetchOrdersFromSupabase(): Promise<Order[] | null> {
       items: ord.order_items || [],
     })) as Order[];
   } catch (err: unknown) {
-    console.error('Error fetching orders from Supabase:', err);
+    console.warn('[Supabase fetchOrders Notice]', err);
     return null;
   }
 }
@@ -97,7 +97,7 @@ export async function fetchBillsFromSupabase(): Promise<Bill[] | null> {
       items: b.bill_items || [],
     })) as Bill[];
   } catch (err: unknown) {
-    console.error('Error fetching bills from Supabase:', err);
+    console.warn('[Supabase fetchBills Notice]', err);
     return null;
   }
 }
@@ -109,7 +109,7 @@ export async function fetchExpensesFromSupabase(): Promise<Expense[] | null> {
     if (error || !data) return null;
     return data as Expense[];
   } catch (err: unknown) {
-    console.error('Error fetching expenses from Supabase:', err);
+    console.warn('[Supabase fetchExpenses Notice]', err);
     return null;
   }
 }
@@ -121,7 +121,7 @@ export async function fetchInvestmentsFromSupabase(): Promise<Investment[] | nul
     if (error || !data) return null;
     return data as Investment[];
   } catch (err: unknown) {
-    console.error('Error fetching investments from Supabase:', err);
+    console.warn('[Supabase fetchInvestments Notice]', err);
     return null;
   }
 }
@@ -133,7 +133,7 @@ export async function saveShopSettingsToSupabase(settings: Partial<ShopSettings>
   try {
     await supabase.from('shop').upsert(settings);
   } catch (err: unknown) {
-    console.error('Error saving shop settings to Supabase:', err);
+    console.warn('[Supabase saveShopSettings Notice]', err);
   }
 }
 
@@ -142,7 +142,7 @@ export async function saveProductToSupabase(product: Product): Promise<void> {
   try {
     await supabase.from('products').upsert(product);
   } catch (err: unknown) {
-    console.error('Error saving product to Supabase:', err);
+    console.warn('[Supabase saveProduct Notice]', err);
   }
 }
 
@@ -151,7 +151,7 @@ export async function deleteProductFromSupabase(id: string): Promise<void> {
   try {
     await supabase.from('products').delete().eq('id', id);
   } catch (err: unknown) {
-    console.error('Error deleting product from Supabase:', err);
+    console.warn('[Supabase deleteProduct Notice]', err);
   }
 }
 
@@ -172,7 +172,7 @@ export async function saveOrderToSupabase(order: Order): Promise<void> {
 
     const { error } = await supabase.from('orders').upsert(dbOrder);
     if (error) {
-      console.error('[Supabase saveOrderToSupabase Error]', error);
+      console.warn('[Supabase saveOrder Notice]', error.message || error);
     }
 
     if (items && items.length > 0) {
@@ -189,7 +189,7 @@ export async function saveOrderToSupabase(order: Order): Promise<void> {
       await supabase.from('order_items').upsert(dbItems);
     }
   } catch (err: unknown) {
-    console.error('Error saving order to Supabase:', err);
+    console.warn('[Supabase saveOrder Warning]', err);
   }
 }
 
@@ -198,7 +198,10 @@ export async function saveBillToSupabase(bill: Bill): Promise<void> {
   try {
     const { items, ...billHeader } = bill;
     const { error } = await supabase.from('bills').upsert(billHeader);
-    if (error) throw error;
+    if (error) {
+      console.warn('[Supabase saveBill Notice]', error.message || error);
+      return;
+    }
 
     if (items && items.length > 0) {
       const dbItems = items.map((it) => ({
@@ -208,7 +211,7 @@ export async function saveBillToSupabase(bill: Bill): Promise<void> {
       await supabase.from('bill_items').upsert(dbItems);
     }
   } catch (err: unknown) {
-    console.error('Error saving bill to Supabase:', err);
+    console.warn('[Supabase saveBill Warning]', err);
   }
 }
 
@@ -217,7 +220,7 @@ export async function saveExpenseToSupabase(expense: Expense): Promise<void> {
   try {
     await supabase.from('expenses').upsert(expense);
   } catch (err: unknown) {
-    console.error('Error saving expense to Supabase:', err);
+    console.warn('[Supabase saveExpense Notice]', err);
   }
 }
 
@@ -226,7 +229,7 @@ export async function saveInvestmentToSupabase(investment: Investment): Promise<
   try {
     await supabase.from('investments').upsert(investment);
   } catch (err: unknown) {
-    console.error('Error saving investment to Supabase:', err);
+    console.warn('[Supabase saveInvestment Notice]', err);
   }
 }
 
@@ -235,7 +238,7 @@ export async function saveStockMovementToSupabase(movement: StockMovement): Prom
   try {
     await supabase.from('stock_movements').upsert(movement);
   } catch (err: unknown) {
-    console.error('Error saving stock movement to Supabase:', err);
+    console.warn('[Supabase saveStockMovement Notice]', err);
   }
 }
 
@@ -249,6 +252,6 @@ export async function updateShopSettingsInSupabase(settings: Partial<ShopSetting
       await supabase.from('shop').insert(settings);
     }
   } catch (err: unknown) {
-    console.error('Error updating shop settings in Supabase:', err);
+    console.warn('[Supabase updateShopSettings Notice]', err);
   }
 }

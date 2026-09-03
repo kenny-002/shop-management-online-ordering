@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
       if (isSupabaseConfigured && supabase) {
         const dbPayload = sanitizeOrderForDb(orderData);
         const { error } = await supabase.from('orders').upsert(dbPayload);
-        if (error) console.error('[Supabase Order Upsert Error]', error);
+        if (error) console.warn('[Supabase Order Upsert Notice]', error.message || error);
 
         if (orderData.items && orderData.items.length > 0) {
           const dbItems = orderData.items.map((it) => ({

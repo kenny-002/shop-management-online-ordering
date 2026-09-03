@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       const dbPayload = sanitizeProductForDb(product);
       const { error } = await supabase.from('products').upsert(dbPayload);
       if (error) {
-        console.error('[Supabase Product Upsert Error]', error);
+        console.warn('[Supabase Product Upsert Notice]', error.message || error);
       }
     }
 
