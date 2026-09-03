@@ -318,7 +318,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           try {
             const parsed = JSON.parse(savedShop);
             setShop((prev) => ({ ...prev, ...parsed }));
-          } catch (e) {}
+          } catch {}
         }
 
         const savedProducts = localStorage.getItem('products_data');
@@ -330,7 +330,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             } else {
               setProducts(INITIAL_PRODUCTS);
             }
-          } catch (e) {
+          } catch {
             setProducts(INITIAL_PRODUCTS);
           }
         } else {
@@ -339,27 +339,27 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
         const savedOrders = localStorage.getItem('orders_data');
         if (savedOrders) {
-          try { setOrders(JSON.parse(savedOrders)); } catch (e) {}
+          try { setOrders(JSON.parse(savedOrders)); } catch {}
         }
 
         const savedInvestments = localStorage.getItem('investments_data');
         if (savedInvestments) {
-          try { setInvestments(JSON.parse(savedInvestments)); } catch (e) {}
+          try { setInvestments(JSON.parse(savedInvestments)); } catch {}
         }
 
         const savedExpenses = localStorage.getItem('expenses_data');
         if (savedExpenses) {
-          try { setExpenses(JSON.parse(savedExpenses)); } catch (e) {}
+          try { setExpenses(JSON.parse(savedExpenses)); } catch {}
         }
 
         const savedBills = localStorage.getItem('bills_data');
         if (savedBills) {
-          try { setBills(JSON.parse(savedBills)); } catch (e) {}
+          try { setBills(JSON.parse(savedBills)); } catch {}
         }
 
         const savedCart = localStorage.getItem('cart_data');
         if (savedCart) {
-          try { setCart(JSON.parse(savedCart)); } catch (e) {}
+          try { setCart(JSON.parse(savedCart)); } catch {}
         }
 
         const savedAuth = localStorage.getItem('owner_auth');
@@ -376,7 +376,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             const parsedCusts: CustomerProfile[] = JSON.parse(savedRegisteredCusts);
             const filtered = parsedCusts.filter((c) => c.id !== 'cust-demo-1' && c.email !== 'ramesh.customer@example.com');
             setRegisteredCustomers(filtered);
-          } catch (e) {}
+          } catch {}
         }
 
         const savedCust = localStorage.getItem('customer_user');
@@ -389,7 +389,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
               localStorage.removeItem('customer_user');
               setCurrentCustomer(null);
             }
-          } catch (e) {}
+          } catch {}
         }
 
         // 2. Fetch products & live customer orders via Multi-Device Cloud API

@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
-import { TrendingUp, Calendar, Filter, ArrowUpRight } from 'lucide-react';
+import React from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart as RePieChart, Pie, Cell } from 'recharts';
 import { useData } from '@/context/data-context';
 
 export default function OwnerSalesPage() {
   const { orders, bills, totalSales, categories, products } = useData();
 
-  const now = new Date();
-
-  const isSameCalendarDay = (dateString?: string, targetDate: Date = now) => {
+  const isSameCalendarDay = React.useCallback((dateString?: string, targetDate: Date = new Date()) => {
     if (!dateString) return false;
     const itemDate = new Date(dateString);
     return (
@@ -18,34 +16,38 @@ export default function OwnerSalesPage() {
       itemDate.getMonth() === targetDate.getMonth() &&
       itemDate.getDate() === targetDate.getDate()
     );
-  };
+  }, []);
 
   const validOrders = React.useMemo(() => orders.filter((o) => o.order_status !== 'Cancelled'), [orders]);
 
   const todaySales = React.useMemo(() => {
-    const oTotal = validOrders.filter((o) => isSameCalendarDay(o.created_at)).reduce((sum, o) => sum + o.total_amount, 0);
-    const bTotal = bills.filter((b) => isSameCalendarDay(b.created_at)).reduce((sum, b) => sum + b.total, 0);
+    const today = new Date();
+    const oTotal = validOrders.filter((o) => isSameCalendarDay(o.created_at, today)).reduce((sum, o) => sum + o.total_amount, 0);
+    const bTotal = bills.filter((b) => isSameCalendarDay(b.created_at, today)).reduce((sum, b) => sum + b.total, 0);
     return oTotal + bTotal;
-  }, [validOrders, bills]);
+  }, [validOrders, bills, isSameCalendarDay]);
 
   const yesterdaySales = React.useMemo(() => {
-    const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const today = new Date();
+    const yest = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     const oTotal = validOrders.filter((o) => isSameCalendarDay(o.created_at, yest)).reduce((sum, o) => sum + o.total_amount, 0);
     const bTotal = bills.filter((b) => isSameCalendarDay(b.created_at, yest)).reduce((sum, b) => sum + b.total, 0);
     return oTotal + bTotal;
-  }, [validOrders, bills]);
+  }, [validOrders, bills, isSameCalendarDay]);
 
   const pctChange = yesterdaySales > 0 ? Math.round(((todaySales - yesterdaySales) / yesterdaySales) * 100) : todaySales > 0 ? 100 : 0;
 
   const weekSales = React.useMemo(() => {
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 86400000);
     const oTotal = validOrders.filter((o) => new Date(o.created_at) >= sevenDaysAgo).reduce((sum, o) => sum + o.total_amount, 0);
     const bTotal = bills.filter((b) => new Date(b.created_at) >= sevenDaysAgo).reduce((sum, b) => sum + b.total, 0);
     return oTotal + bTotal;
   }, [validOrders, bills]);
 
   const monthSales = React.useMemo(() => {
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000);
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 86400000);
     const oTotal = validOrders.filter((o) => new Date(o.created_at) >= thirtyDaysAgo).reduce((sum, o) => sum + o.total_amount, 0);
     const bTotal = bills.filter((b) => new Date(b.created_at) >= thirtyDaysAgo).reduce((sum, b) => sum + b.total, 0);
     return oTotal + bTotal;
@@ -54,9 +56,10 @@ export default function OwnerSalesPage() {
   const salesData = React.useMemo(() => {
     const days = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
 
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
       const dayName = i === 0 ? 'Today' : dayNames[d.getDay()];
 
       const dayOrders = validOrders.filter((o) => isSameCalendarDay(o.created_at, d));
@@ -71,7 +74,7 @@ export default function OwnerSalesPage() {
       });
     }
     return days;
-  }, [validOrders, bills]);
+  }, [validOrders, bills, isSameCalendarDay]);
 
   const categoryData = React.useMemo(() => {
     const catMap: Record<string, number> = {};

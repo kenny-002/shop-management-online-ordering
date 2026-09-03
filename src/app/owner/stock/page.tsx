@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Layers, AlertTriangle, Plus, RefreshCw, History, Search } from 'lucide-react';
+import { History, Search } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function OwnerStockPage() {

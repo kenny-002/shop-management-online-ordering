@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings, Save, QrCode, Truck, Store, MapPin, Check, Smartphone, Key, Bell, FileText, ExternalLink } from 'lucide-react';
+import { Save, QrCode, Store, MapPin, Check, Smartphone, Key, Bell, ExternalLink, Truck } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function OwnerSettingsPage() {
@@ -348,12 +348,89 @@ export default function OwnerSettingsPage() {
             </div>
 
             <div className="sm:col-span-2">
+              <label className="font-semibold text-slate-300 block mb-1">Shop Logo Image URL</label>
+              <input
+                type="url"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 font-mono text-xs"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="font-semibold text-slate-300 block mb-1">Store Opening Hours</label>
+              <input
+                type="text"
+                value={openingHours}
+                onChange={(e) => setOpeningHours(e.target.value)}
+                placeholder="e.g. Daily: 6:00 AM - 10:30 PM"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
               <label className="font-semibold text-slate-300 block mb-1">Full Physical Address *</label>
               <input
                 type="text"
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Home Delivery Settings Section */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
+          <h3 className="font-extrabold text-base text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+            <Truck className="w-4 h-4 text-emerald-400" /> Home Delivery & Minimum Order Rules
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="sm:col-span-2 flex items-center gap-3 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+              <input
+                type="checkbox"
+                id="delivEnabled"
+                checked={deliveryEnabled}
+                onChange={(e) => setDeliveryEnabled(e.target.checked)}
+                className="w-4 h-4 accent-emerald-500 rounded"
+              />
+              <label htmlFor="delivEnabled" className="font-bold text-white cursor-pointer">
+                ☑ Enable Home Delivery Option for Online Customer Orders
+              </label>
+            </div>
+
+            <div>
+              <label className="font-semibold text-slate-300 block mb-1">Delivery Charge (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={deliveryCharge}
+                onChange={(e) => setDeliveryCharge(Number(e.target.value))}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 font-bold text-emerald-400"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-slate-300 block mb-1">Minimum Order for Free Delivery (₹)</label>
+              <input
+                type="number"
+                min="0"
+                value={minimumOrder}
+                onChange={(e) => setMinimumOrder(Number(e.target.value))}
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 font-bold text-emerald-400"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="font-semibold text-slate-300 block mb-1">Delivery Areas Covered</label>
+              <input
+                type="text"
+                value={deliveryAreas}
+                onChange={(e) => setDeliveryAreas(e.target.value)}
+                placeholder="e.g. Green Park, Hauz Khas, Safdarjung Enclave"
                 className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5"
               />
             </div>
