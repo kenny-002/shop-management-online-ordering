@@ -6,9 +6,9 @@ import { DataProvider } from '@/context/data-context';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'FreshMart Local Supermarket — Your Local Shop, Now Online',
+  title: 'Sri Samundi Store & Tea Stall — Online Ordering',
   description:
-    'Order fresh groceries, daily essentials, organic produce & household supplies online with fast local home delivery and instant UPI payments.',
+    'Order fresh tea, snacks, daily groceries, cold drinks & household essentials online from Sri Samundi Store & Tea Stall with fast local delivery and instant UPI payment.',
 };
 
 export default function RootLayout({

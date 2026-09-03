@@ -3,12 +3,12 @@
 import React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle2, Clock, MapPin, Phone, ArrowLeft, ShoppingBag, Truck, PackageCheck, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Clock, MapPin, Truck, AlertCircle } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function OrderConfirmationPage() {
   const { id } = useParams();
-  const { orders, shop } = useData();
+  const { orders } = useData();
 
   const order = orders.find((o) => o.id === id);
 

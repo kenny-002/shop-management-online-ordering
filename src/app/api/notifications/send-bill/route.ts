@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       totalAmount,
       invoiceUrl,
       deliveryMethod = 'WHATSAPP',
-      shopName = 'FreshMart Local Supermarket',
+      shopName = 'Sri Samundi Store & Tea Stall',
     } = body;
 
     // Validate phone number

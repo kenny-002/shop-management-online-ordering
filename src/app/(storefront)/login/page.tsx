@@ -11,10 +11,8 @@ import {
   Phone,
   Lock,
   MapPin,
-  Sparkles,
   UserPlus,
   CheckCircle2,
-  AlertTriangle,
   XCircle,
 } from 'lucide-react';
 import { useData } from '@/context/data-context';

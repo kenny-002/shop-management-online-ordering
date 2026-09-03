@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const testMessage = `[FreshMart Test] Real cellular SMS dispatch test successful! Time: ${new Date().toLocaleTimeString()}`;
+    const testMessage = `[Sri Samundi Store Test] Real cellular SMS dispatch test successful! Time: ${new Date().toLocaleTimeString()}`;
 
     if (provider === 'fast2sms') {
       // Try POST first

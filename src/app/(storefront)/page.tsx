@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   ShoppingBag,
   ArrowRight,
@@ -13,10 +12,7 @@ import {
   Phone,
   Clock,
   CheckCircle2,
-  AlertCircle,
   Plus,
-  Star,
-  Store,
 } from 'lucide-react';
 import { useData, Product } from '@/context/data-context';
 

@@ -9,8 +9,6 @@ import {
   Search,
   MapPin,
   Clock,
-  Phone,
-  UserCheck,
   User,
   ShieldCheck,
   Menu,

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Phone, MapPin, Package, LogOut, Save, Check } from 'lucide-react';
+import { User, Package, LogOut, Save, Check } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function CustomerAccountPage() {
