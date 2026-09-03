@@ -168,7 +168,7 @@ CREATE INDEX IF NOT EXISTS idx_bills_created ON public.bills(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON public.order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_bill_items_bill ON public.bill_items(bill_id);
 
--- ENABLE ROW LEVEL SECURITY (RLS)
+-- ENABLE ROW LEVEL SECURITY (RLS) ON ALL TABLES
 ALTER TABLE public.shop ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
@@ -180,19 +180,53 @@ ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.investments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
 
--- RLS POLICIES
+-- 1. STOREFRONT PUBLIC READ POLICIES (Products, Categories, Public Shop info)
+CREATE POLICY "Public shop info select" ON public.shop FOR SELECT USING (true);
+CREATE POLICY "Public categories select" ON public.categories FOR SELECT USING (true);
+CREATE POLICY "Public products select" ON public.products FOR SELECT USING (is_available = true);
 
--- Public Read access for storefront browsing
-CREATE POLICY "Public shop read policy" ON public.shop FOR SELECT USING (true);
-CREATE POLICY "Public categories read policy" ON public.categories FOR SELECT USING (true);
-CREATE POLICY "Public products read policy" ON public.products FOR SELECT USING (true);
+-- 2. CUSTOMER ORDER & CHECKOUT POLICIES (Restricted to order submission & token possession)
+CREATE POLICY "Customer order insert" ON public.orders FOR INSERT WITH CHECK (true);
+CREATE POLICY "Customer order items insert" ON public.order_items FOR INSERT WITH CHECK (true);
 
--- Storefront Order Creation Policy (Customers can place orders)
-CREATE POLICY "Public customer order insert" ON public.orders FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public customer order items insert" ON public.order_items FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public order view by token" ON public.orders FOR SELECT USING (true);
-CREATE POLICY "Public order items view" ON public.order_items FOR SELECT USING (true);
+CREATE POLICY "Customer order select by invoice token" ON public.orders FOR SELECT USING (
+  (invoice_token IS NOT NULL AND invoice_token = current_setting('request.headers', true)::json->>'x-invoice-token')
+  OR (auth.role() = 'authenticated')
+);
 
--- POS Bill View by Token Policy
-CREATE POLICY "Public bill view by token" ON public.bills FOR SELECT USING (true);
-CREATE POLICY "Public bill items view" ON public.bill_items FOR SELECT USING (true);
+CREATE POLICY "Customer order items select" ON public.order_items FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.orders o
+    WHERE o.id = order_items.order_id
+    AND (
+      (o.invoice_token IS NOT NULL AND o.invoice_token = current_setting('request.headers', true)::json->>'x-invoice-token')
+      OR (auth.role() = 'authenticated')
+    )
+  )
+);
+
+-- 3. POS BILL & DIGITAL INVOICE POLICIES (Restricted by token possession or authenticated owner)
+CREATE POLICY "POS bill select by token" ON public.bills FOR SELECT USING (
+  (invoice_token IS NOT NULL AND invoice_token = current_setting('request.headers', true)::json->>'x-invoice-token')
+  OR (auth.role() = 'authenticated')
+);
+
+CREATE POLICY "POS bill items select" ON public.bill_items FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.bills b
+    WHERE b.id = bill_items.bill_id
+    AND (
+      (b.invoice_token IS NOT NULL AND b.invoice_token = current_setting('request.headers', true)::json->>'x-invoice-token')
+      OR (auth.role() = 'authenticated')
+    )
+  )
+);
+
+-- 4. OWNER/ADMIN PROTECTED POLICIES (Expenses, Investments, Stock Movements, Mutations)
+CREATE POLICY "Owner expenses policy" ON public.expenses FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Owner investments policy" ON public.investments FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Owner stock movements policy" ON public.stock_movements FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Owner products write policy" ON public.products FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Owner shop write policy" ON public.shop FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Owner orders manage policy" ON public.orders FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Owner bills manage policy" ON public.bills FOR ALL USING (auth.role() = 'authenticated');
