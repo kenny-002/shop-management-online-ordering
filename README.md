@@ -169,8 +169,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 16. Screenshots
+## 16. Application Screenshots Showcase
 
+### Customer Storefront
 | Store Front Display | Counter Display |
 |---|---|
 | ![Store Front](/images/shop/sri-samundi-store-front.jpg) | ![Counter Display](/images/shop/sri-samundi-counter-display.jpg) |
@@ -179,9 +180,63 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 |---|---|
 | ![Store Inside](/images/shop/sri-samundi-store-inside.jpg) | ![Biscuits & Snacks](/images/shop/sri-samundi-biscuits-snacks.jpg) |
 
+*Additional screenshot assets structure provided in [`docs/screenshots/`](file:///Users/dineshs/Desktop/SHOP%20MANAGEMENT%20&%20ONLINE%20ORDERING%20WEBSITE%20copy22/docs/screenshots/README.md) for custom demonstration captures (`customer/` and `owner/`).*
+
 ---
 
-## 17. Project Folder Structure
+## 17. Project Evaluation Checklist
+
+- [x] **Customer Storefront**: Interactive product catalog and category filters
+- [x] **Product Search**: Real-time instant search by name, brand, or category
+- [x] **Category Filtering**: Filter catalog by tea/coffee, snacks, drinks, and daily essentials
+- [x] **Cart Validation**: Quantity controls bounded by inventory stock
+- [x] **Checkout System**: Home delivery address selection & pickup options
+- [x] **Cash on Delivery (COD)**: Supported order payment flow
+- [x] **UPI Payment QR**: Instant QR Code generator with UTR transaction verification
+- [x] **Online Order Creation**: Real-time submission into PostgreSQL database
+- [x] **Order Tracking**: Customer order status timeline (`Pending` $\rightarrow$ `Delivered`)
+- [x] **Owner Authentication**: Protected routes with HTTP cookie authorization
+- [x] **Product CRUD**: Add, edit, and delete products with input validation
+- [x] **Stock Management**: Stock matrix, restock actions, and movement audit trail
+- [x] **Low-Stock Alerts**: Automatic visual badges when stock drops below threshold
+- [x] **POS Billing Terminal**: Fast counter billing interface (`INV-XXXX`)
+- [x] **Digital Invoice Generation**: Printable and downloadable PDF/PNG invoice receipts
+- [x] **WhatsApp Billing**: Direct 1-click dispatch of receipt links via WhatsApp Web API
+- [x] **SMS Notifications**: Integrated Fast2SMS SMS dispatch
+- [x] **Sales Analytics**: Recharts visual breakdown of daily, weekly, and monthly sales
+- [x] **Expense Management**: Record operating costs (rent, electricity, salaries)
+- [x] **Investment Management**: Log capital investments and automatic stock purchases
+- [x] **Profit Analytics**: Automated calculation of Gross Profit and Net Profit
+- [x] **Supabase Database**: 10 relational PostgreSQL tables with foreign key constraints
+- [x] **Real-Time Synchronization**: Instant multi-device updates across owner and customer views
+- [x] **Responsive UI**: Fully responsive layout tested on 320px, 375px, 768px, and Desktop
+- [x] **Error Handling**: Graceful fallback states, toasts, and loading spinners
+- [x] **Data Persistence**: Hybrid Supabase database and local storage persistence
+
+---
+
+## 18. Manual Testing Documentation
+
+| Test Case | Description | Expected Result | Status |
+|---|---|---|---|
+| **TC01** | Customer browses products | Catalog displays active items with stock status badges | **PASS** |
+| **TC02** | Customer adds item to cart | Cart counter updates and item subtotal calculates correctly | **PASS** |
+| **TC03** | Stock quantity boundary check | Add-to-cart button prevents selecting quantity higher than stock | **PASS** |
+| **TC04** | Customer places online order | Order created in Supabase/cloud store and stock decreases | **PASS** |
+| **TC05** | Owner login authentication | Credentials `dinesh2122007@gmail.com` grant access to `/owner/*` | **PASS** |
+| **TC06** | Owner updates order status | Status updates to `Confirmed`/`Preparing`/`Delivered` in real-time | **PASS** |
+| **TC07** | Owner adds product | Product appears immediately in storefront and owner catalog | **PASS** |
+| **TC08** | Order cancellation stock restoration | Cancelling an order restores product stock and logs `RETURN` movement | **PASS** |
+| **TC09** | Owner creates POS Counter Bill | Bill saved with `INV-XXXX` token and total calculates accurately | **PASS** |
+| **TC10** | Digital invoice page rendering | `/invoice/[token]` renders itemized bill with print/PNG export | **PASS** |
+| **TC11** | Expense entry updates Net Profit | Adding an expense reduces Net Profit ($Net Profit = Gross Profit - Expenses$) | **PASS** |
+| **TC12** | Browser refresh persistence | Cart, orders, products, and owner session persist after F5 refresh | **PASS** |
+| **TC13** | Protected route security | Direct URL access to `/owner/dashboard` without login redirects to `/owner/login` | **PASS** |
+| **TC14** | Mobile viewport responsiveness | Layout renders cleanly on 320px–768px viewports with no horizontal scroll | **PASS** |
+
+---
+
+## 19. Project Folder Structure
 
 ```
 src/
@@ -226,18 +281,21 @@ src/
 supabase/
 ├── schema.sql                # PostgreSQL Database Schema Script
 └── seed.sql                  # Initial Database Seed Data Script
+
+docs/
+└── screenshots/              # Screenshot Demonstration Assets Directory
 ```
 
 ---
 
-## 18. Future Enhancements
+## 20. Future Enhancements
 - **Multi-Branch Support**: Ability to manage multiple shop outlets under one owner dashboard.
 - **Barcode Scanner Integration**: WebCam or Hardware USB barcode scanner support for the POS terminal.
 - **Dark / Light Theme Toggle**: User-selectable theme modes for customer storefront.
 
 ---
 
-## 19. Testing
+## 21. Testing & Code Quality Commands
 
 Run TypeScript validation:
 ```bash
@@ -256,6 +314,6 @@ npm run build
 
 ---
 
-## 20. Contributors
-Developed for **Shop Management & Online Ordering System** College Evaluation Project.
+## 22. Evaluation Metadata & Contributors
+Developed for **Shop Management & Online Ordering System** Final Evaluation Project.
 - **Tech Lead & Developer**: Dinesh S (`dinesh2122007@gmail.com`)
