@@ -296,6 +296,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isOwnerLoggedIn, setIsOwnerLoggedIn] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
+function sanitizeProductIds(prods: Product[]): Product[] {
+  const seen = new Set<string>();
+  return prods.map((p, idx) => {
+    let id = p.id;
+    if (!id || seen.has(id)) {
+      id = `p-sanitized-${idx}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    }
+    seen.add(id);
+    return { ...p, id };
+  });
+}
+
   // Initialize data from localStorage & sync Supabase / Cloud API
   useEffect(() => {
     async function initData() {
@@ -314,7 +326,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           try {
             const parsedProds = JSON.parse(savedProducts);
             if (Array.isArray(parsedProds) && parsedProds.length > 0) {
-              setProducts(parsedProds);
+              setProducts(sanitizeProductIds(parsedProds));
             } else {
               setProducts(INITIAL_PRODUCTS);
             }
@@ -392,7 +404,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
               const map = new Map<string, Product>();
               prev.forEach((p) => map.set(p.id, p));
               cloudData.products.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-              return Array.from(map.values());
+              return sanitizeProductIds(Array.from(map.values()));
             });
           }
           const orderCloudData = await orderCloudRes.json();
@@ -417,7 +429,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
               const map = new Map<string, Product>();
               prev.forEach((p) => map.set(p.id, p));
               dbProducts.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-              return Array.from(map.values());
+              return sanitizeProductIds(Array.from(map.values()));
             });
           }
 
@@ -653,10 +665,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   // Product Actions
-  const addProduct = (productData: Omit<Product, 'id'>) => {
+  const addProduct = (productData: Omit<Product, 'id'> & { id?: string }) => {
+    const uniqueId = productData.id || `p-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const newProduct: Product = {
       ...productData,
-      id: `p-${Date.now()}`,
+      id: uniqueId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
