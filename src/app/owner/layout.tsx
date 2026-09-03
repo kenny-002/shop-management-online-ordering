@@ -20,8 +20,6 @@ import {
   X,
   Store,
   AlertTriangle,
-  ChevronRight,
-  ShieldAlert,
   Loader2,
 } from 'lucide-react';
 import { useData } from '@/context/data-context';

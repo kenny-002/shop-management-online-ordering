@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Store, MapPin, Phone, Mail, Clock, Truck, ShieldCheck, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Clock, Truck, ExternalLink } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function ShopInfoPage() {

@@ -12,7 +12,6 @@ import {
   ShoppingBag,
   CheckCircle2,
   Plus,
-  ArrowRight,
   Sparkles,
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
@@ -20,7 +19,6 @@ import { useData } from '@/context/data-context';
 
 export default function OwnerDashboardPage() {
   const {
-    shop,
     products,
     orders,
     bills,
@@ -28,7 +26,6 @@ export default function OwnerDashboardPage() {
     totalSales,
     totalInvestments,
     totalExpenses,
-    grossProfit,
     netProfit,
     lowStockProducts,
     restockProduct,

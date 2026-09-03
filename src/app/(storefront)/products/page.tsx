@@ -3,7 +3,7 @@
 import React, { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Search, Filter, Plus, Check, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { Search, Plus, ArrowUpDown } from 'lucide-react';
 import { useData, Product } from '@/context/data-context';
 
 function ProductCatalogContent() {
@@ -20,7 +20,7 @@ function ProductCatalogContent() {
     initialInStock ? 'instock' : 'all'
   );
   const [sortBy, setSortBy] = useState<'priceLow' | 'priceHigh' | 'newest' | 'popular'>('popular');
-  const [maxPrice, setMaxPrice] = useState<number>(1000);
+  const [maxPrice] = useState<number>(1000);
   const [addedId, setAddedId] = useState<string | null>(null);
 
   // Filter & Sort Logic
@@ -57,7 +57,7 @@ function ProductCatalogContent() {
         if (sortBy === 'newest') return (b.id > a.id ? 1 : -1);
         return a.stock_quantity > b.stock_quantity ? -1 : 1; // Popular (higher stock)
       });
-  }, [products, searchQuery, selectedCategory, stockFilter, maxPrice, sortBy]);
+  }, [products, searchQuery, selectedCategory, stockFilter, sortBy]);
 
   const handleAddToCart = (prod: Product) => {
     addToCart(prod, 1);

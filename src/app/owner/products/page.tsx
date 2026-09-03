@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Package, Plus, Edit3, Trash2, Search, AlertTriangle, Check, X, Tag, Sparkles, RefreshCw } from 'lucide-react';
+import { Package, Plus, Edit3, Trash2, Search, AlertTriangle, X, Sparkles, RefreshCw } from 'lucide-react';
 import { useData } from '@/context/data-context';
 import { Product } from '@/lib/types';
 

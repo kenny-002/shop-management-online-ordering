@@ -4,7 +4,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import html2canvas from 'html2canvas';
-import { Printer, Download, Store, CheckCircle2, ShieldCheck, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { Printer, Store, CheckCircle2, ShieldCheck, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function DigitalInvoicePage() {

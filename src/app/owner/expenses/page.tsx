@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Wallet, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function OwnerExpensesPage() {

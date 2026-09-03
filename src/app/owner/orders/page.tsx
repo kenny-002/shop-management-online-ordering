@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShoppingBag, Search, Phone, MapPin, CheckCircle2, Clock, AlertCircle, Eye } from 'lucide-react';
+import { Search, Phone } from 'lucide-react';
 import { useData } from '@/context/data-context';
 import { OrderStatus } from '@/lib/types';
 

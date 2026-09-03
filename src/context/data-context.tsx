@@ -501,7 +501,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             });
           }
         }
-      } catch (e) {}
+      } catch {}
     };
 
     window.addEventListener('focus', handleSyncOnFocus);
@@ -683,7 +683,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProduct),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
 
     // 1. Stock Movement record
     if (newProduct.stock_quantity > 0) {
@@ -737,7 +737,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(targetUpdated),
         }).catch(() => {});
-      } catch (e) {}
+      } catch {}
     }
   };
 
@@ -747,7 +747,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
     try {
       fetch(`/api/products?id=${id}`, { method: 'DELETE' }).catch(() => {});
-    } catch (e) {}
+    } catch {}
   };
 
   const restockProduct = (id: string, qty: number, note?: string) => {
@@ -977,7 +977,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'BILL', data: newBill }),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
 
     // Stock deduction
     newOrder.items.forEach((item) => {
@@ -1024,7 +1024,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId, status: newStatus }),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
 
     setOrders((prev) =>
       prev.map((ord) => {
@@ -1117,7 +1117,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'BILL', data: newBill }),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
 
     newBill.items.forEach((item) => {
       setProducts((prev) =>

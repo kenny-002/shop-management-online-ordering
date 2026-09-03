@@ -15,7 +15,7 @@ const globalBillStore: Bill[] = (globalThis as any)._billCloudStore || [];
 
 // Helper to sanitize order header for Supabase DB
 function sanitizeOrderForDb(order: Order) {
-  const { items, ...header } = order;
+  const { ...header } = order;
   return {
     id: header.id,
     order_number: header.order_number,
@@ -67,7 +67,7 @@ export async function GET() {
           if (typeof o.delivery_address === 'string' && o.delivery_address.trim().startsWith('{')) {
             try {
               parsedAddress = JSON.parse(o.delivery_address);
-            } catch (e) {}
+            } catch {}
           }
 
           const relatedItems = dbOrderItems
