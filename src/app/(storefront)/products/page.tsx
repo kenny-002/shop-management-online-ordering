@@ -57,7 +57,7 @@ function ProductCatalogContent() {
         if (sortBy === 'newest') return (b.id > a.id ? 1 : -1);
         return a.stock_quantity > b.stock_quantity ? -1 : 1; // Popular (higher stock)
       });
-  }, [products, searchQuery, selectedCategory, stockFilter, sortBy]);
+  }, [products, searchQuery, selectedCategory, stockFilter, maxPrice, sortBy]);
 
   const handleAddToCart = (prod: Product) => {
     addToCart(prod, 1);

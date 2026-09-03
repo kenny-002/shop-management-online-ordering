@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
 
     const product: Product = await req.json();
 
-    if (!product || !product.id || !product.name) {
-      return NextResponse.json({ success: false, error: 'Invalid product payload' }, { status: 400 });
+    if (!product || !product.id || !product.name || Number(product.selling_price) < 0 || Number(product.stock_quantity) < 0) {
+      return NextResponse.json({ success: false, error: 'Invalid product payload: name, valid selling price, and stock quantity required' }, { status: 400 });
     }
 
     // 1. Update in-memory multi-device store

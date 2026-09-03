@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS public.shop (
   google_maps_url TEXT,
   opening_hours TEXT,
   delivery_enabled BOOLEAN DEFAULT true,
-  delivery_charge NUMERIC DEFAULT 30,
-  minimum_order NUMERIC DEFAULT 100,
+  delivery_charge NUMERIC DEFAULT 30 CHECK (delivery_charge >= 0),
+  minimum_order NUMERIC DEFAULT 100 CHECK (minimum_order >= 0),
   delivery_areas TEXT,
   upi_id TEXT,
   qr_code_url TEXT,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.shop (
 -- 2. CATEGORIES TABLE
 CREATE TABLE IF NOT EXISTS public.categories (
   id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   image_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -44,10 +44,10 @@ CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  category_id TEXT,
-  purchase_price NUMERIC DEFAULT 0,
-  selling_price NUMERIC NOT NULL DEFAULT 0,
-  stock_quantity INTEGER NOT NULL DEFAULT 0,
+  category_id TEXT REFERENCES public.categories(id) ON DELETE SET NULL,
+  purchase_price NUMERIC DEFAULT 0 CHECK (purchase_price >= 0),
+  selling_price NUMERIC NOT NULL DEFAULT 0 CHECK (selling_price >= 0),
+  stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
   unit TEXT DEFAULT 'pcs',
   image_url TEXT,
   is_available BOOLEAN DEFAULT true,
@@ -59,23 +59,23 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- 4. ORDERS TABLE
 CREATE TABLE IF NOT EXISTS public.orders (
   id TEXT PRIMARY KEY,
-  order_number TEXT NOT NULL,
+  order_number TEXT NOT NULL UNIQUE,
   customer_name TEXT NOT NULL,
   customer_email TEXT,
   customer_phone TEXT,
   customer_mobile TEXT,
   delivery_address JSONB,
-  subtotal NUMERIC DEFAULT 0,
-  discount NUMERIC DEFAULT 0,
-  delivery_charge NUMERIC DEFAULT 0,
-  total_amount NUMERIC NOT NULL DEFAULT 0,
+  subtotal NUMERIC DEFAULT 0 CHECK (subtotal >= 0),
+  discount NUMERIC DEFAULT 0 CHECK (discount >= 0),
+  delivery_charge NUMERIC DEFAULT 0 CHECK (delivery_charge >= 0),
+  total_amount NUMERIC NOT NULL DEFAULT 0 CHECK (total_amount >= 0),
   payment_method TEXT DEFAULT 'CASH',
   payment_status TEXT DEFAULT 'PENDING',
   order_status TEXT DEFAULT 'PENDING',
   notes TEXT,
   invoice_number TEXT,
   invoice_url TEXT,
-  invoice_token TEXT,
+  invoice_token TEXT UNIQUE,
   owner_email TEXT DEFAULT 'dinesh2122007@gmail.com',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -85,29 +85,29 @@ CREATE TABLE IF NOT EXISTS public.orders (
 CREATE TABLE IF NOT EXISTS public.order_items (
   id TEXT PRIMARY KEY,
   order_id TEXT REFERENCES public.orders(id) ON DELETE CASCADE,
-  product_id TEXT,
+  product_id TEXT REFERENCES public.products(id) ON DELETE SET NULL,
   product_name TEXT NOT NULL,
-  quantity INTEGER NOT NULL DEFAULT 1,
-  purchase_price NUMERIC DEFAULT 0,
-  selling_price NUMERIC DEFAULT 0,
-  subtotal NUMERIC DEFAULT 0
+  quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  purchase_price NUMERIC DEFAULT 0 CHECK (purchase_price >= 0),
+  selling_price NUMERIC DEFAULT 0 CHECK (selling_price >= 0),
+  subtotal NUMERIC DEFAULT 0 CHECK (subtotal >= 0)
 );
 
 -- 6. BILLS TABLE (POS Invoices)
 CREATE TABLE IF NOT EXISTS public.bills (
   id TEXT PRIMARY KEY,
-  bill_number TEXT NOT NULL,
+  bill_number TEXT NOT NULL UNIQUE,
   customer_name TEXT NOT NULL,
   customer_phone TEXT,
   customer_mobile TEXT,
-  subtotal NUMERIC DEFAULT 0,
-  discount NUMERIC DEFAULT 0,
-  delivery_charge NUMERIC DEFAULT 0,
-  total NUMERIC NOT NULL DEFAULT 0,
+  subtotal NUMERIC DEFAULT 0 CHECK (subtotal >= 0),
+  discount NUMERIC DEFAULT 0 CHECK (discount >= 0),
+  delivery_charge NUMERIC DEFAULT 0 CHECK (delivery_charge >= 0),
+  total NUMERIC NOT NULL DEFAULT 0 CHECK (total >= 0),
   payment_method TEXT DEFAULT 'CASH',
   invoice_number TEXT,
   invoice_url TEXT,
-  invoice_token TEXT,
+  invoice_token TEXT UNIQUE,
   owner_email TEXT DEFAULT 'dinesh2122007@gmail.com',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -116,12 +116,12 @@ CREATE TABLE IF NOT EXISTS public.bills (
 CREATE TABLE IF NOT EXISTS public.bill_items (
   id TEXT PRIMARY KEY,
   bill_id TEXT REFERENCES public.bills(id) ON DELETE CASCADE,
-  product_id TEXT,
+  product_id TEXT REFERENCES public.products(id) ON DELETE SET NULL,
   product_name TEXT NOT NULL,
-  quantity INTEGER NOT NULL DEFAULT 1,
-  purchase_price NUMERIC DEFAULT 0,
-  selling_price NUMERIC DEFAULT 0,
-  subtotal NUMERIC DEFAULT 0
+  quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  purchase_price NUMERIC DEFAULT 0 CHECK (purchase_price >= 0),
+  selling_price NUMERIC DEFAULT 0 CHECK (selling_price >= 0),
+  subtotal NUMERIC DEFAULT 0 CHECK (subtotal >= 0)
 );
 
 -- 8. EXPENSES TABLE
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS public.expenses (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   category TEXT DEFAULT 'GENERAL',
-  amount NUMERIC NOT NULL DEFAULT 0,
+  amount NUMERIC NOT NULL DEFAULT 0 CHECK (amount >= 0),
   date TEXT,
   notes TEXT,
   owner_email TEXT DEFAULT 'dinesh2122007@gmail.com',
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS public.investments (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   category TEXT DEFAULT 'CAPITAL',
-  amount NUMERIC NOT NULL DEFAULT 0,
+  amount NUMERIC NOT NULL DEFAULT 0 CHECK (amount >= 0),
   date TEXT,
   notes TEXT,
   owner_email TEXT DEFAULT 'dinesh2122007@gmail.com',
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS public.investments (
 -- 10. STOCK MOVEMENTS TABLE
 CREATE TABLE IF NOT EXISTS public.stock_movements (
   id TEXT PRIMARY KEY,
-  product_id TEXT,
+  product_id TEXT REFERENCES public.products(id) ON DELETE CASCADE,
   product_name TEXT NOT NULL,
   quantity INTEGER NOT NULL DEFAULT 0,
   movement_type TEXT DEFAULT 'PURCHASE',
@@ -160,14 +160,39 @@ CREATE TABLE IF NOT EXISTS public.stock_movements (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- DISABLE RLS TO ALLOW FULL ACCESS FOR STORE OWNER AND ANONYMOUS APP DISPATCH
-ALTER TABLE public.shop DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.categories DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.products DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.orders DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.order_items DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.bills DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.bill_items DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.expenses DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.investments DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.stock_movements DISABLE ROW LEVEL SECURITY;
+-- INDEXES FOR FAST QUERYING
+CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(order_status);
+CREATE INDEX IF NOT EXISTS idx_orders_created ON public.orders(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_bills_created ON public.bills(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON public.order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_bill_items_bill ON public.bill_items(bill_id);
+
+-- ENABLE ROW LEVEL SECURITY (RLS)
+ALTER TABLE public.shop ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bill_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.investments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
+
+-- RLS POLICIES
+
+-- Public Read access for storefront browsing
+CREATE POLICY "Public shop read policy" ON public.shop FOR SELECT USING (true);
+CREATE POLICY "Public categories read policy" ON public.categories FOR SELECT USING (true);
+CREATE POLICY "Public products read policy" ON public.products FOR SELECT USING (true);
+
+-- Storefront Order Creation Policy (Customers can place orders)
+CREATE POLICY "Public customer order insert" ON public.orders FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public customer order items insert" ON public.order_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public order view by token" ON public.orders FOR SELECT USING (true);
+CREATE POLICY "Public order items view" ON public.order_items FOR SELECT USING (true);
+
+-- POS Bill View by Token Policy
+CREATE POLICY "Public bill view by token" ON public.bills FOR SELECT USING (true);
+CREATE POLICY "Public bill items view" ON public.bill_items FOR SELECT USING (true);

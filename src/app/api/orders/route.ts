@@ -131,8 +131,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { type = 'ORDER', data } = body;
 
-    if (!data || !data.id) {
-      return NextResponse.json({ success: false, error: 'Invalid order payload' }, { status: 400 });
+    if (!data || !data.id || (type === 'ORDER' && Number(data.total_amount) < 0) || (type === 'BILL' && Number(data.total) < 0)) {
+      return NextResponse.json({ success: false, error: 'Invalid payload: Valid ID and non-negative total required' }, { status: 400 });
     }
 
     if (type === 'ORDER') {
