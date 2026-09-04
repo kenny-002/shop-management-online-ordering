@@ -218,6 +218,24 @@ export async function saveProductToSupabase(product: Product): Promise<void> {
     const { error } = await supabase.from('products').upsert(dbPayload);
     if (error) {
       console.warn('[Supabase saveProduct Notice]', error.message || error);
+      // Fallback: Retry with standard schema payload if custom columns throw column errors
+      const fallbackPayload: Record<string, unknown> = {
+        id: product.id,
+        name: product.name,
+        description: product.description || '',
+        purchase_price: Number(product.purchase_price) || 0,
+        selling_price: Number(product.selling_price) || 0,
+        stock_quantity: Number(product.stock_quantity) || 0,
+        image_url: product.image_url || '',
+        is_available: product.is_active !== false,
+        owner_email: 'dinesh2122007@gmail.com',
+        created_at: product.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      const retryRes = await supabase.from('products').upsert(fallbackPayload);
+      if (retryRes.error) {
+        console.error('[Supabase saveProduct Fallback Error]', retryRes.error.message || retryRes.error);
+      }
     }
   } catch (err: unknown) {
     console.warn('[Supabase saveProduct Notice]', err);

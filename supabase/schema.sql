@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   purchase_price NUMERIC DEFAULT 0 CHECK (purchase_price >= 0),
   selling_price NUMERIC NOT NULL DEFAULT 0 CHECK (selling_price >= 0),
   stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
+  brand TEXT DEFAULT 'Sri Samundi',
+  low_stock_limit INTEGER DEFAULT 5,
   unit TEXT DEFAULT 'pcs',
   image_url TEXT,
   is_available BOOLEAN DEFAULT true,
@@ -55,6 +57,9 @@ CREATE TABLE IF NOT EXISTS public.products (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS brand TEXT DEFAULT 'Sri Samundi';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS low_stock_limit INTEGER DEFAULT 5;
 
 -- 4. ORDERS TABLE
 CREATE TABLE IF NOT EXISTS public.orders (

@@ -108,6 +108,20 @@ export async function POST(req: NextRequest) {
       const { error } = await supabase.from('products').upsert(dbPayload);
       if (error) {
         console.warn('[Supabase Product Upsert Notice]', error.message || error);
+        const fallbackPayload = {
+          id: product.id,
+          name: product.name,
+          description: product.description || '',
+          purchase_price: Number(product.purchase_price) || 0,
+          selling_price: Number(product.selling_price) || 0,
+          stock_quantity: Number(product.stock_quantity) || 0,
+          image_url: product.image_url || '',
+          is_available: product.is_active !== false,
+          owner_email: 'dinesh2122007@gmail.com',
+          created_at: product.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        await supabase.from('products').upsert(fallbackPayload);
       }
     }
 
