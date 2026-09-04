@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE /api/products - Deletes a product by ID across all devices
+// DELETE /api/products - Deletes a product by ID or clears all products across all devices
 export async function DELETE(req: NextRequest) {
   try {
     const authCookie = req.cookies.get('owner_auth')?.value;
@@ -122,6 +122,15 @@ export async function DELETE(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
+    const clearAll = searchParams.get('clear_all');
+
+    if (clearAll === 'true') {
+      globalProductStore.length = 0;
+      if (isSupabaseConfigured && supabase) {
+        await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      }
+      return NextResponse.json({ success: true, cleared: true, products: [] });
+    }
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'Product ID required' }, { status: 400 });

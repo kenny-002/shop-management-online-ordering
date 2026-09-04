@@ -28,6 +28,7 @@ import {
   fetchInvestmentsFromSupabase,
   saveProductToSupabase,
   deleteProductFromSupabase,
+  clearAllProductsFromSupabase,
   saveOrderToSupabase,
   saveBillToSupabase,
   saveExpenseToSupabase,
@@ -516,7 +517,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     }
   }, [currentCustomer, isLoaded]);
 
-  // Clear demo data completely
+  // Clear demo data completely across client, server, and Supabase DB
   const clearAllDemoData = () => {
     setProducts([]);
     setOrders([]);
@@ -530,6 +531,20 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     localStorage.removeItem('expenses_data');
     localStorage.removeItem('bills_data');
     localStorage.removeItem('cart_data');
+
+    // Purge from Supabase DB
+    clearAllProductsFromSupabase();
+
+    // Purge from Server Multi-Device Store
+    try {
+      fetch('/api/products?clear_all=true', {
+        method: 'DELETE',
+        headers: {
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
+      }).catch(() => {});
+    } catch {}
   };
 
   // Customer Auth Actions

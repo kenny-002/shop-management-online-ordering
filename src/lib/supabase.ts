@@ -177,6 +177,15 @@ export async function deleteProductFromSupabase(id: string): Promise<void> {
   }
 }
 
+export async function clearAllProductsFromSupabase(): Promise<void> {
+  if (!supabase) return;
+  try {
+    await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  } catch (err: unknown) {
+    console.warn('[Supabase clearAllProducts Notice]', err);
+  }
+}
+
 export async function saveOrderToSupabase(order: Order): Promise<void> {
   if (!supabase) return;
   try {
