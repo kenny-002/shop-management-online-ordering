@@ -57,9 +57,9 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
 
       {/* Main Navbar */}
       <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-lg w-full">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 md:gap-3 lg:gap-4 xl:gap-5 w-full box-border min-w-0">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2.5 lg:gap-4 xl:gap-5 w-full box-border min-w-0">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
+          <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
               <Store className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
@@ -73,20 +73,20 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
             </div>
           </Link>
 
-          {/* Desktop Search Bar (Clearly visible & responsive) */}
-          <form onSubmit={handleSearchSubmit} className="hidden md:flex relative shrink-0 w-44 lg:w-56 xl:w-72 2xl:w-80">
+          {/* Desktop Search Bar (Constrained width so it never crowds right-side controls) */}
+          <form onSubmit={handleSearchSubmit} className="hidden md:flex relative flex-1 min-w-[150px] max-w-[190px] lg:max-w-[220px] xl:max-w-[240px]">
             <input
               type="text"
               placeholder="Search rice, oils, milk, spices..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 sm:h-11 bg-slate-800/90 text-slate-100 placeholder-slate-400 text-xs sm:text-sm rounded-full pl-9 sm:pl-10 pr-4 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-inner truncate"
+              className="w-full h-10 bg-slate-800/90 text-slate-100 placeholder-slate-400 text-xs sm:text-sm rounded-full pl-9 pr-3.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-inner truncate"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 sm:top-3.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
           </form>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-2 xl:gap-4 shrink-0">
+          {/* Desktop Nav Links (Home, Products, My Orders, Shop Location) */}
+          <nav className="hidden xl:flex items-center gap-2.5 xl:gap-3.5 shrink-0">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -105,14 +105,14 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
             })}
           </nav>
 
-          {/* Cart, Customer Login, & Owner Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 shrink-0">
+          {/* Right Action Buttons: Cart, Customer Account, Owner Dashboard, Mobile Toggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3 shrink-0">
             {/* Cart Button */}
             <Link
               href="/cart"
-              className="relative bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-2.5 sm:px-3.5 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-xs sm:text-sm transition-all hover:scale-105 shrink-0"
+              className="relative bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-2.5 sm:px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-xs sm:text-sm transition-all hover:scale-105 shrink-0"
             >
-              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <ShoppingCart className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
               <span className="hidden sm:inline">Cart</span>
               {cartCount > 0 && (
                 <span className="bg-emerald-500 text-slate-950 font-extrabold text-[10px] sm:text-xs rounded-full w-4.5 h-4.5 sm:w-5 sm:h-5 flex items-center justify-center animate-pulse shrink-0">
@@ -121,20 +121,20 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
               )}
             </Link>
 
-            {/* SEPARATE CUSTOMER LOGIN / ACCOUNT BUTTON */}
+            {/* CUSTOMER LOGIN / ACCOUNT BUTTON */}
             {currentCustomer ? (
               <Link
                 href="/account"
-                className="hidden sm:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0"
+                className="hidden sm:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold transition-colors shrink-0"
                 title={currentCustomer.name}
               >
                 <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
-                <span className="max-w-[70px] sm:max-w-[90px] xl:max-w-[120px] truncate">{currentCustomer.name.split(' ')[0]}</span>
+                <span className="max-w-[65px] sm:max-w-[85px] xl:max-w-[100px] truncate">{currentCustomer.name.split(' ')[0]}</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="hidden sm:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors shrink-0"
+                className="hidden sm:flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-semibold transition-colors shrink-0"
               >
                 <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
                 <span className="hidden xl:inline">Customer Login</span>
@@ -142,20 +142,20 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
               </Link>
             )}
 
-            {/* SEPARATE OWNER PORTAL BUTTON */}
+            {/* OWNER PORTAL / DASHBOARD BUTTON (COMPLETELY VISIBLE WITH BREATHING ROOM) */}
             <Link
               href={isOwnerLoggedIn ? '/owner/dashboard' : '/owner/login'}
-              className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-slate-950 font-black px-2.5 sm:px-3.5 py-2 rounded-xl text-xs transition-transform hover:scale-105 shadow shrink-0"
+              className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-slate-950 font-black px-3 sm:px-3.5 py-2 rounded-xl text-xs transition-transform hover:scale-105 shadow shrink-0"
             >
               <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span className="hidden xl:inline">{isOwnerLoggedIn ? 'Owner Dashboard' : 'Owner Portal'}</span>
-              <span className="xl:hidden">Owner</span>
+              <span className="hidden lg:inline">{isOwnerLoggedIn ? 'Owner Dashboard' : 'Owner Portal'}</span>
+              <span className="lg:hidden">Owner</span>
             </Link>
 
             {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors shrink-0"
+              className="xl:hidden p-2 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors shrink-0"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
@@ -165,7 +165,7 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-slate-900 border-b border-slate-800 px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top duration-200">
+          <div className="xl:hidden bg-slate-900 border-b border-slate-800 px-4 pt-3 pb-6 space-y-4 animate-in slide-in-from-top duration-200">
             <form onSubmit={handleSearchSubmit} className="relative">
               <input
                 type="text"
