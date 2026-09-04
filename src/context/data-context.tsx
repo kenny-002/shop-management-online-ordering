@@ -291,9 +291,16 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             fetch('/api/products'),
           ]);
           const cloudData = await cloudRes.json();
-          if (cloudData.success && Array.isArray(cloudData.products)) {
+          if (cloudData.success && Array.isArray(cloudData.products) && cloudData.products.length > 0) {
             const filteredCloud = cloudData.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-            setProducts(sanitizeProductIds(filteredCloud));
+            if (filteredCloud.length > 0) {
+              setProducts((prev) => {
+                const map = new Map<string, Product>();
+                prev.forEach((p) => map.set(p.id, p));
+                filteredCloud.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
+                return sanitizeProductIds(Array.from(map.values()));
+              });
+            }
           }
         } catch (err) {
           console.error('Error fetching cloud sync API:', err);
@@ -307,9 +314,16 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           }
 
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts) {
+          if (dbProducts && dbProducts.length > 0) {
             const filteredDb = dbProducts.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-            setProducts(sanitizeProductIds(filteredDb));
+            if (filteredDb.length > 0) {
+              setProducts((prev) => {
+                const map = new Map<string, Product>();
+                prev.forEach((p) => map.set(p.id, p));
+                filteredDb.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
+                return sanitizeProductIds(Array.from(map.values()));
+              });
+            }
           }
 
           const dbCategories = await fetchCategoriesFromSupabase();
@@ -368,9 +382,16 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           }),
         ]);
         const dataP = await resP.json();
-        if (dataP.success && Array.isArray(dataP.products)) {
+        if (dataP.success && Array.isArray(dataP.products) && dataP.products.length > 0) {
           const filteredSync = dataP.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-          setProducts(sanitizeProductIds(filteredSync));
+          if (filteredSync.length > 0) {
+            setProducts((prev) => {
+              const map = new Map<string, Product>();
+              prev.forEach((p) => map.set(p.id, p));
+              filteredSync.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
+              return sanitizeProductIds(Array.from(map.values()));
+            });
+          }
         }
         const dataO = await resO.json();
         if (dataO.success) {
@@ -703,7 +724,11 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     try {
       fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
         body: JSON.stringify(newProduct),
       }).catch(() => {});
     } catch {}
@@ -757,7 +782,11 @@ function sanitizeProductIds(prods: Product[]): Product[] {
       try {
         fetch('/api/products', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-owner-auth': 'true',
+          },
+          credentials: 'include',
           body: JSON.stringify(targetUpdated),
         }).catch(() => {});
       } catch {}
@@ -769,7 +798,13 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     deleteProductFromSupabase(id);
 
     try {
-      fetch(`/api/products?id=${id}`, { method: 'DELETE' }).catch(() => {});
+      fetch(`/api/products?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
+      }).catch(() => {});
     } catch {}
   };
 

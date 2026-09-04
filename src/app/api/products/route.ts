@@ -34,13 +34,12 @@ export async function GET() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         // Filter out any legacy p-samundi- default items if present
         const realItems = data.filter((item) => item && item.id && !item.id.startsWith('p-samundi-'));
-        // Update in-memory store
-        globalProductStore.length = 0;
         realItems.forEach((item) => {
-          globalProductStore.push({
+          const idx = globalProductStore.findIndex((p) => p.id === item.id);
+          const mapped: Product = {
             id: item.id,
             name: item.name,
             category_id: item.category_id || 'cat-1',
@@ -54,7 +53,12 @@ export async function GET() {
             is_active: item.is_available !== false,
             created_at: item.created_at,
             updated_at: item.updated_at,
-          });
+          };
+          if (idx >= 0) {
+            globalProductStore[idx] = { ...globalProductStore[idx], ...mapped };
+          } else {
+            globalProductStore.push(mapped);
+          }
         });
         return NextResponse.json({ success: true, products: globalProductStore, source: 'supabase' });
       }
