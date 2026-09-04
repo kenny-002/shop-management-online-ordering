@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, toUuid, saveProductToSupabase } from '@/lib/supabase';
 import { Product } from '@/lib/types';
 
 // In-memory global store fallback for instant multi-device sync
@@ -8,39 +8,19 @@ const globalProductStore: Product[] = (globalThis as any)._productCloudStore || 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any)._productCloudStore = globalProductStore;
 
-// Helper to sanitize product for Supabase PostgreSQL schema
-function sanitizeProductForDb(product: Partial<Product>) {
-  return {
-    id: product.id,
-    name: product.name,
-    brand: product.brand || 'Sri Samundi',
-    description: product.description || '',
-    category_id: product.category_id || 'cat-1',
-    purchase_price: Number(product.purchase_price) || 0,
-    selling_price: Number(product.selling_price) || 0,
-    stock_quantity: Number(product.stock_quantity) || 0,
-    low_stock_limit: Number(product.low_stock_limit) || 5,
-    image_url: product.image_url || '',
-    is_available: product.is_active !== false,
-    owner_email: 'dinesh2122007@gmail.com',
-    created_at: product.created_at || new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-}
-
 // GET /api/products - Returns all products for all devices
 export async function GET() {
   try {
+    let supabaseProducts: Product[] = [];
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        // Filter out any legacy p-samundi- default items if present
+      if (!error && data && data.length > 0) {
         const realItems = data.filter((item) => item && item.id && !item.id.startsWith('p-samundi-'));
-        const supabaseProducts: Product[] = realItems.map((item) => ({
+        supabaseProducts = realItems.map((item) => ({
           id: item.id,
           name: item.name || 'Unnamed Product',
           category_id: item.category_id || 'cat-1',
@@ -55,15 +35,25 @@ export async function GET() {
           created_at: item.created_at || new Date().toISOString(),
           updated_at: item.updated_at || new Date().toISOString(),
         }));
-
-        globalProductStore.length = 0;
-        globalProductStore.push(...supabaseProducts);
-        return NextResponse.json({ success: true, products: globalProductStore, source: 'supabase' });
       }
     }
 
-    const filteredStore = globalProductStore.filter((p) => p && p.id && !p.id.startsWith('p-samundi-'));
-    return NextResponse.json({ success: true, products: filteredStore, source: 'cloud-store' });
+    // Merge Supabase DB products with in-memory global product store
+    const map = new Map<string, Product>();
+    supabaseProducts.forEach((p) => map.set(p.id, p));
+    globalProductStore.forEach((p) => {
+      if (p && p.id && !map.has(p.id)) {
+        map.set(p.id, p);
+      }
+    });
+
+    const combinedProducts = Array.from(map.values()).filter((p) => p && p.id && !p.id.startsWith('p-samundi-'));
+
+    // Keep global store in sync
+    globalProductStore.length = 0;
+    globalProductStore.push(...combinedProducts);
+
+    return NextResponse.json({ success: true, products: globalProductStore, source: 'cloud-merged' });
   } catch (err: unknown) {
     console.error('[API /api/products GET Error]', err);
     return NextResponse.json({ success: true, products: globalProductStore, source: 'cloud-store-fallback' });
@@ -86,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Update in-memory multi-device store
-    const existingIndex = globalProductStore.findIndex((p) => p.id === product.id);
+    const existingIndex = globalProductStore.findIndex((p) => p.id === product.id || p.id === toUuid(product.id));
     if (existingIndex >= 0) {
       globalProductStore[existingIndex] = { ...globalProductStore[existingIndex], ...product };
     } else {
@@ -95,34 +85,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Persist to Supabase PostgreSQL database
     if (isSupabaseConfigured && supabase) {
-      const catId = product.category_id || 'cat-1';
-      try {
-        await supabase.from('categories').upsert({
-          id: catId,
-          name: catId === 'cat-1' ? 'Tea & Coffee' : catId === 'cat-2' ? 'Snacks & Biscuits' : catId === 'cat-3' ? 'Cool Drinks & Ice Creams' : catId === 'cat-4' ? 'Dairy & Milk' : 'General Store',
-          image_url: 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80',
-        });
-      } catch {}
-
-      const dbPayload = sanitizeProductForDb(product);
-      const { error } = await supabase.from('products').upsert(dbPayload);
-      if (error) {
-        console.warn('[Supabase Product Upsert Notice]', error.message || error);
-        const fallbackPayload = {
-          id: product.id,
-          name: product.name,
-          description: product.description || '',
-          purchase_price: Number(product.purchase_price) || 0,
-          selling_price: Number(product.selling_price) || 0,
-          stock_quantity: Number(product.stock_quantity) || 0,
-          image_url: product.image_url || '',
-          is_available: product.is_active !== false,
-          owner_email: 'dinesh2122007@gmail.com',
-          created_at: product.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        await supabase.from('products').upsert(fallbackPayload);
-      }
+      await saveProductToSupabase(product);
     }
 
     return NextResponse.json({ success: true, product, products: globalProductStore });

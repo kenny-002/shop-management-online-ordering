@@ -187,9 +187,24 @@ export async function ensureCategoriesInSupabase(): Promise<void> {
   }
 }
 
+export function toUuid(str: string): string {
+  if (!str) return '00000000-0000-4000-8000-000000000000';
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(str)) return str;
+
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(12, '0').repeat(3).substring(0, 32);
+  return `${hex.substring(0,8)}-${hex.substring(8,12)}-4${hex.substring(13,16)}-a${hex.substring(17,20)}-${hex.substring(20,32)}`;
+}
+
 export async function saveProductToSupabase(product: Product): Promise<void> {
   if (!supabase) return;
   try {
+    const uuidId = toUuid(product.id);
     const catId = product.category_id || 'cat-1';
     try {
       await supabase.from('categories').upsert({
@@ -200,7 +215,7 @@ export async function saveProductToSupabase(product: Product): Promise<void> {
     } catch {}
 
     const dbPayload = {
-      id: product.id,
+      id: uuidId,
       name: product.name,
       brand: product.brand || 'Sri Samundi',
       description: product.description || '',
@@ -220,15 +235,13 @@ export async function saveProductToSupabase(product: Product): Promise<void> {
       console.warn('[Supabase saveProduct Notice]', error.message || error);
       // Fallback: Retry with standard schema payload if custom columns throw column errors
       const fallbackPayload: Record<string, unknown> = {
-        id: product.id,
+        id: uuidId,
         name: product.name,
         description: product.description || '',
         purchase_price: Number(product.purchase_price) || 0,
         selling_price: Number(product.selling_price) || 0,
         stock_quantity: Number(product.stock_quantity) || 0,
         image_url: product.image_url || '',
-        is_available: product.is_active !== false,
-        owner_email: 'dinesh2122007@gmail.com',
         created_at: product.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -245,7 +258,11 @@ export async function saveProductToSupabase(product: Product): Promise<void> {
 export async function deleteProductFromSupabase(id: string): Promise<void> {
   if (!supabase) return;
   try {
-    await supabase.from('products').delete().eq('id', id);
+    const uuidId = toUuid(id);
+    await supabase.from('products').delete().eq('id', uuidId);
+    if (id !== uuidId) {
+      await supabase.from('products').delete().eq('id', id);
+    }
   } catch (err: unknown) {
     console.warn('[Supabase deleteProduct Notice]', err);
   }
