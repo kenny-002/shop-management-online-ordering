@@ -185,6 +185,7 @@ ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
 -- 1. STOREFRONT PUBLIC READ POLICIES (Products, Categories, Public Shop info)
 CREATE POLICY "Public shop info select" ON public.shop FOR SELECT USING (true);
 CREATE POLICY "Public categories select" ON public.categories FOR SELECT USING (true);
+CREATE POLICY "Public categories write policy" ON public.categories FOR ALL USING (true);
 CREATE POLICY "Public products select" ON public.products FOR SELECT USING (true);
 
 -- 2. CUSTOMER ORDER & CHECKOUT POLICIES (Restricted to user ownership & token possession)

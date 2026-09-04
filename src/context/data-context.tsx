@@ -478,9 +478,39 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     window.addEventListener('focus', handleSyncOnFocus);
     const syncInterval = setInterval(handleSyncOnFocus, 4000);
 
+    // 3. Supabase Realtime multi-device websocket channel subscription
+    const sbClient = isSupabaseConfigured && supabase ? supabase : null;
+    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+    if (sbClient) {
+      channel = sbClient
+        .channel('public:products_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+          const dbProducts = await fetchProductsFromSupabase();
+          if (dbProducts !== null && Array.isArray(dbProducts)) {
+            const filteredDb = dbProducts.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
+            setProducts((prev) => {
+              const map = new Map<string, Product>();
+              filteredDb.forEach((p: Product) => {
+                if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+              });
+              prev.forEach((localP) => {
+                if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                  map.set(localP.id, localP);
+                }
+              });
+              return sanitizeProductIds(Array.from(map.values()));
+            });
+          }
+        })
+        .subscribe();
+    }
+
     return () => {
       window.removeEventListener('focus', handleSyncOnFocus);
       clearInterval(syncInterval);
+      if (channel && sbClient) {
+        sbClient.removeChannel(channel);
+      }
     };
   }, [isOwnerLoggedIn]);
 
