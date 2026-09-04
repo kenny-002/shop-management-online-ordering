@@ -146,7 +146,23 @@ export async function saveShopSettingsToSupabase(settings: Partial<ShopSettings>
 export async function saveProductToSupabase(product: Product): Promise<void> {
   if (!supabase) return;
   try {
-    await supabase.from('products').upsert(product);
+    const dbPayload = {
+      id: product.id,
+      name: product.name,
+      description: product.description || '',
+      category_id: product.category_id || 'cat-1',
+      purchase_price: Number(product.purchase_price) || 0,
+      selling_price: Number(product.selling_price) || 0,
+      stock_quantity: Number(product.stock_quantity) || 0,
+      image_url: product.image_url || '',
+      owner_email: 'dinesh2122007@gmail.com',
+      created_at: product.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('products').upsert(dbPayload);
+    if (error) {
+      console.warn('[Supabase saveProduct Notice]', error.message || error);
+    }
   } catch (err: unknown) {
     console.warn('[Supabase saveProduct Notice]', err);
   }

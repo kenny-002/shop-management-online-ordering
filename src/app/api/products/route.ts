@@ -34,10 +34,12 @@ export async function GET() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
+        // Filter out any legacy p-samundi- default items if present
+        const realItems = data.filter((item) => item && item.id && !item.id.startsWith('p-samundi-'));
         // Update in-memory store
         globalProductStore.length = 0;
-        data.forEach((item) => {
+        realItems.forEach((item) => {
           globalProductStore.push({
             id: item.id,
             name: item.name,
@@ -58,7 +60,8 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ success: true, products: globalProductStore, source: 'cloud-store' });
+    const filteredStore = globalProductStore.filter((p) => p && p.id && !p.id.startsWith('p-samundi-'));
+    return NextResponse.json({ success: true, products: filteredStore, source: 'cloud-store' });
   } catch (err: unknown) {
     console.error('[API /api/products GET Error]', err);
     return NextResponse.json({ success: true, products: globalProductStore, source: 'cloud-store-fallback' });

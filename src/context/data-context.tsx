@@ -91,120 +91,7 @@ const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-7', name: 'Spices & Essentials', image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=400&q=80' },
 ];
 
-const INITIAL_PRODUCTS: Product[] = [
-  {
-    id: 'p-samundi-1',
-    name: 'Special Masala Milk Tea (Cup)',
-    category_id: 'cat-1',
-    brand: 'Sri Samundi',
-    description: 'Fresh hot brewed ginger cardamom masala tea',
-    purchase_price: 6,
-    selling_price: 12,
-    stock_quantity: 100,
-    low_stock_limit: 20,
-    image_url: '/images/shop/sri-samundi-counter-display.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-2',
-    name: 'Filter Coffee (Cup)',
-    category_id: 'cat-1',
-    brand: 'Sri Samundi',
-    description: 'Authentic South Indian aromatic filter coffee',
-    purchase_price: 8,
-    selling_price: 15,
-    stock_quantity: 80,
-    low_stock_limit: 15,
-    image_url: '/images/shop/sri-samundi-counter-display.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-3',
-    name: 'Butter Milk Rusk & Biscuit Pack',
-    category_id: 'cat-2',
-    brand: 'Sri Samundi / Britannia',
-    description: 'Crispy tea time snack biscuits & rusks',
-    purchase_price: 8,
-    selling_price: 10,
-    stock_quantity: 60,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-4',
-    name: 'Full Cream Milk Packet 500ml',
-    category_id: 'cat-4',
-    brand: 'Aavin / Amul',
-    description: 'Fresh pasteurized daily milk packet',
-    purchase_price: 24,
-    selling_price: 28,
-    stock_quantity: 40,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-store-front.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-5',
-    name: 'MilkyMist Ice Cream Cone / Tub',
-    category_id: 'cat-3',
-    brand: 'MilkyMist',
-    description: 'Delicious chilled ice cream cone & tub',
-    purchase_price: 30,
-    selling_price: 40,
-    stock_quantity: 35,
-    low_stock_limit: 8,
-    image_url: '/images/shop/sri-samundi-board-sign.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-6',
-    name: 'Chilled Soft Drink Bottle 500ml',
-    category_id: 'cat-3',
-    brand: 'Thums Up / Coca-Cola',
-    description: 'Refreshing cold soft drink bottle',
-    purchase_price: 32,
-    selling_price: 40,
-    stock_quantity: 30,
-    low_stock_limit: 5,
-    image_url: '/images/shop/sri-samundi-board-sign.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-7',
-    name: 'Bisleri Mineral Water Bottle 1L',
-    category_id: 'cat-3',
-    brand: 'Bisleri',
-    description: 'Pure packaged drinking water bottle 1 Litre',
-    purchase_price: 14,
-    selling_price: 20,
-    stock_quantity: 50,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-store-inside.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-8',
-    name: 'Crispy South Indian Murukku Pack',
-    category_id: 'cat-2',
-    brand: 'Sri Samundi',
-    description: 'Fresh homemade crunchy savoury murukku snack',
-    purchase_price: 20,
-    selling_price: 30,
-    stock_quantity: 45,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-];
+const INITIAL_PRODUCTS: Product[] = [];
 const INITIAL_INVESTMENTS: Investment[] = [];
 const INITIAL_EXPENSES: Expense[] = [];
 const INITIAL_ORDERS: Order[] = [];
@@ -327,15 +214,16 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           try {
             const parsedProds = JSON.parse(savedProducts);
             if (Array.isArray(parsedProds) && parsedProds.length > 0) {
-              setProducts(sanitizeProductIds(parsedProds));
+              const filtered = parsedProds.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
+              setProducts(sanitizeProductIds(filtered));
             } else {
-              setProducts(INITIAL_PRODUCTS);
+              setProducts([]);
             }
           } catch {
-            setProducts(INITIAL_PRODUCTS);
+            setProducts([]);
           }
         } else {
-          setProducts(INITIAL_PRODUCTS);
+          setProducts([]);
         }
 
         const savedOrders = localStorage.getItem('orders_data');
@@ -403,13 +291,9 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             fetch('/api/products'),
           ]);
           const cloudData = await cloudRes.json();
-          if (cloudData.success && cloudData.products && cloudData.products.length > 0) {
-            setProducts((prev) => {
-              const map = new Map<string, Product>();
-              prev.forEach((p) => map.set(p.id, p));
-              cloudData.products.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-              return sanitizeProductIds(Array.from(map.values()));
-            });
+          if (cloudData.success && Array.isArray(cloudData.products)) {
+            const filteredCloud = cloudData.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
+            setProducts(sanitizeProductIds(filteredCloud));
           }
         } catch (err) {
           console.error('Error fetching cloud sync API:', err);
@@ -423,13 +307,9 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           }
 
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts && dbProducts.length > 0) {
-            setProducts((prev) => {
-              const map = new Map<string, Product>();
-              prev.forEach((p) => map.set(p.id, p));
-              dbProducts.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-              return sanitizeProductIds(Array.from(map.values()));
-            });
+          if (dbProducts) {
+            const filteredDb = dbProducts.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
+            setProducts(sanitizeProductIds(filteredDb));
           }
 
           const dbCategories = await fetchCategoriesFromSupabase();
@@ -488,13 +368,9 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           }),
         ]);
         const dataP = await resP.json();
-        if (dataP.success && dataP.products && dataP.products.length > 0) {
-          setProducts((prev) => {
-            const map = new Map<string, Product>();
-            prev.forEach((p) => map.set(p.id, p));
-            dataP.products.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-            return Array.from(map.values());
-          });
+        if (dataP.success && Array.isArray(dataP.products)) {
+          const filteredSync = dataP.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
+          setProducts(sanitizeProductIds(filteredSync));
         }
         const dataO = await resO.json();
         if (dataO.success) {
