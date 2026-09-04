@@ -57,9 +57,9 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
 
       {/* Main Navbar */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3 lg:gap-6">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group shrink-0">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
               <Store className="w-6 h-6" />
             </div>
@@ -72,19 +72,19 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
           </Link>
 
           {/* Desktop Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-md relative">
+          <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 min-w-[260px] lg:min-w-[340px] xl:min-w-[420px] max-w-2xl relative mx-1 lg:mx-2">
             <input
               type="text"
               placeholder="Search rice, oils, milk, spices..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-800/80 text-slate-100 placeholder-slate-400 text-sm rounded-full pl-10 pr-4 py-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+              className="w-full bg-slate-800/90 text-slate-100 placeholder-slate-400 text-sm rounded-full pl-10 pr-4 py-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-inner"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
           </form>
 
           {/* Nav Links & Actions */}
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 shrink-0">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -92,7 +92,7 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-2 text-sm font-semibold transition-colors ${
+                  className={`flex items-center gap-1.5 text-sm font-semibold transition-colors ${
                     isActive ? 'text-emerald-400' : 'text-slate-300 hover:text-white'
                   }`}
                 >
@@ -104,7 +104,7 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
           </nav>
 
           {/* Cart, Customer Login, & Owner Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Cart Button */}
             <Link
               href="/cart"
