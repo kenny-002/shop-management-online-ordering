@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import {
   ShopSettings,
   Category,
@@ -26,6 +26,7 @@ import {
   fetchBillsFromSupabase,
   fetchExpensesFromSupabase,
   fetchInvestmentsFromSupabase,
+  ensureCategoriesInSupabase,
   saveProductToSupabase,
   deleteProductFromSupabase,
   clearAllProductsFromSupabase,
@@ -185,6 +186,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isOwnerLoggedIn, setIsOwnerLoggedIn] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const deletedProductIdsRef = useRef<Set<string>>(new Set());
+
 function sanitizeProductIds(prods: Product[]): Product[] {
   const seen = new Set<string>();
   return prods.map((p, idx) => {
@@ -307,7 +310,19 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           const cloudData = await cloudRes.json();
           if (cloudData.success && Array.isArray(cloudData.products)) {
             const filteredCloud = cloudData.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-            setProducts(sanitizeProductIds(filteredCloud));
+            setProducts((prev) => {
+              const map = new Map<string, Product>();
+              filteredCloud.forEach((p: Product) => {
+                if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+              });
+              prev.forEach((localP) => {
+                if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                  map.set(localP.id, localP);
+                  saveProductToSupabase(localP);
+                }
+              });
+              return sanitizeProductIds(Array.from(map.values()));
+            });
           }
         } catch (err) {
           console.error('Error fetching cloud sync API:', err);
@@ -315,6 +330,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
         // 3. Fetch and merge Supabase database records if configured
         if (isSupabaseConfigured && supabase) {
+          await ensureCategoriesInSupabase();
           const dbShop = await fetchShopFromSupabase();
           if (dbShop && Object.keys(dbShop).length > 0) {
             setShop((prev) => ({ ...prev, ...dbShop }));
@@ -323,7 +339,19 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           const dbProducts = await fetchProductsFromSupabase();
           if (dbProducts !== null && Array.isArray(dbProducts)) {
             const filteredDb = dbProducts.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-            setProducts(sanitizeProductIds(filteredDb));
+            setProducts((prev) => {
+              const map = new Map<string, Product>();
+              filteredDb.forEach((p: Product) => {
+                if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+              });
+              prev.forEach((localP) => {
+                if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                  map.set(localP.id, localP);
+                  saveProductToSupabase(localP);
+                }
+              });
+              return sanitizeProductIds(Array.from(map.values()));
+            });
           }
 
           const dbCategories = await fetchCategoriesFromSupabase();
@@ -396,7 +424,19 @@ function sanitizeProductIds(prods: Product[]): Product[] {
         const dataP = await resP.json();
         if (dataP.success && Array.isArray(dataP.products)) {
           const filteredSync = dataP.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-          setProducts(sanitizeProductIds(filteredSync));
+          setProducts((prev) => {
+            const map = new Map<string, Product>();
+            filteredSync.forEach((p: Product) => {
+              if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+            });
+            prev.forEach((localP) => {
+              if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                map.set(localP.id, localP);
+                saveProductToSupabase(localP);
+              }
+            });
+            return sanitizeProductIds(Array.from(map.values()));
+          });
         }
         const dataO = await resO.json();
         if (dataO.success) {
@@ -534,6 +574,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
   // Clear demo data completely across client, server, and Supabase DB
   const clearAllDemoData = () => {
+    products.forEach((p) => deletedProductIdsRef.current.add(p.id));
     setProducts([]);
     setOrders([]);
     setInvestments([]);
@@ -741,6 +782,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
   // Product Actions
   const addProduct = (productData: Omit<Product, 'id'> & { id?: string }) => {
     const uniqueId = productData.id || `p-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    deletedProductIdsRef.current.delete(uniqueId);
     const newProduct: Product = {
       ...productData,
       id: uniqueId,
@@ -824,6 +866,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
   };
 
   const deleteProduct = (id: string) => {
+    deletedProductIdsRef.current.add(id);
     setProducts((prev) => prev.filter((p) => p.id !== id));
     deleteProductFromSupabase(id);
 

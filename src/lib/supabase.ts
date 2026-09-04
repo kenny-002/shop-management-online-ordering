@@ -169,15 +169,42 @@ export async function saveShopSettingsToSupabase(settings: Partial<ShopSettings>
   }
 }
 
+export async function ensureCategoriesInSupabase(): Promise<void> {
+  if (!supabase) return;
+  try {
+    const defaultCategories = [
+      { id: 'cat-1', name: 'Tea & Coffee', image_url: 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80' },
+      { id: 'cat-2', name: 'Snacks & Biscuits', image_url: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=400&q=80' },
+      { id: 'cat-3', name: 'Cool Drinks & Ice Creams', image_url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=400&q=80' },
+      { id: 'cat-4', name: 'Dairy & Milk', image_url: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&w=400&q=80' },
+      { id: 'cat-5', name: 'Rice & Grains', image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80' },
+      { id: 'cat-6', name: 'Edible Oils & Ghee', image_url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80' },
+      { id: 'cat-7', name: 'Spices & Essentials', image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80' },
+    ];
+    await supabase.from('categories').upsert(defaultCategories, { onConflict: 'id' });
+  } catch (err: unknown) {
+    console.warn('[Supabase ensureCategories Notice]', err);
+  }
+}
+
 export async function saveProductToSupabase(product: Product): Promise<void> {
   if (!supabase) return;
   try {
+    const catId = product.category_id || 'cat-1';
+    try {
+      await supabase.from('categories').upsert({
+        id: catId,
+        name: catId === 'cat-1' ? 'Tea & Coffee' : catId === 'cat-2' ? 'Snacks & Biscuits' : catId === 'cat-3' ? 'Cool Drinks & Ice Creams' : catId === 'cat-4' ? 'Dairy & Milk' : 'General Store',
+        image_url: 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80',
+      });
+    } catch {}
+
     const dbPayload = {
       id: product.id,
       name: product.name,
       brand: product.brand || 'Sri Samundi',
       description: product.description || '',
-      category_id: product.category_id || 'cat-1',
+      category_id: catId,
       purchase_price: Number(product.purchase_price) || 0,
       selling_price: Number(product.selling_price) || 0,
       stock_quantity: Number(product.stock_quantity) || 0,

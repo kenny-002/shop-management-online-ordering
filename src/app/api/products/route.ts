@@ -95,6 +95,15 @@ export async function POST(req: NextRequest) {
 
     // 2. Persist to Supabase PostgreSQL database
     if (isSupabaseConfigured && supabase) {
+      const catId = product.category_id || 'cat-1';
+      try {
+        await supabase.from('categories').upsert({
+          id: catId,
+          name: catId === 'cat-1' ? 'Tea & Coffee' : catId === 'cat-2' ? 'Snacks & Biscuits' : catId === 'cat-3' ? 'Cool Drinks & Ice Creams' : catId === 'cat-4' ? 'Dairy & Milk' : 'General Store',
+          image_url: 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80',
+        });
+      } catch {}
+
       const dbPayload = sanitizeProductForDb(product);
       const { error } = await supabase.from('products').upsert(dbPayload);
       if (error) {
