@@ -18,6 +18,7 @@ import {
 } from '@/lib/types';
 import {
   isSupabaseConfigured,
+  supabase,
   fetchShopFromSupabase,
   fetchProductsFromSupabase,
   fetchCategoriesFromSupabase,
@@ -226,13 +227,13 @@ interface DataContextType {
   registeredCustomers: CustomerProfile[];
   currentCustomer: CustomerProfile | null;
   loginCustomer: (email: string, phone: string, name?: string) => void;
-  registerCustomer: (profile: Omit<CustomerProfile, 'id'>) => CustomerProfile;
+  registerCustomer: (profile: Omit<CustomerProfile, 'id'>) => Promise<CustomerProfile> | CustomerProfile;
   authenticateCustomer: (
     identifier: string,
     pass: string
-  ) => { success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile };
+  ) => Promise<{ success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile }> | { success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile };
   updateCustomerProfile: (fields: Partial<CustomerProfile>) => void;
-  logoutCustomer: () => void;
+  logoutCustomer: () => Promise<void> | void;
 
   loginOwner: () => void;
   logoutOwner: () => void;
@@ -339,7 +340,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
         const savedOrders = localStorage.getItem('orders_data');
         if (savedOrders) {
-          try { setOrders(JSON.parse(savedOrders)); } catch {}
+          localStorage.removeItem('orders_data');
         }
 
         const savedInvestments = localStorage.getItem('investments_data');
@@ -368,6 +369,10 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           if (typeof document !== 'undefined') {
             document.cookie = "owner_auth=true; path=/; max-age=86400; SameSite=Lax";
           }
+          const allOwnerOrders = await fetchOrdersFromSupabase();
+          if (allOwnerOrders && allOwnerOrders.length > 0) {
+            setOrders(allOwnerOrders);
+          }
         }
 
         const savedRegisteredCusts = localStorage.getItem('registered_customers_data');
@@ -394,9 +399,8 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
         // 2. Fetch products & live customer orders via Multi-Device Cloud API
         try {
-          const [cloudRes, orderCloudRes] = await Promise.all([
+          const [cloudRes] = await Promise.all([
             fetch('/api/products'),
-            fetch('/api/orders'),
           ]);
           const cloudData = await cloudRes.json();
           if (cloudData.success && cloudData.products && cloudData.products.length > 0) {
@@ -407,17 +411,12 @@ function sanitizeProductIds(prods: Product[]): Product[] {
               return sanitizeProductIds(Array.from(map.values()));
             });
           }
-          const orderCloudData = await orderCloudRes.json();
-          if (orderCloudData.success) {
-            if (orderCloudData.orders && orderCloudData.orders.length > 0) setOrders(orderCloudData.orders);
-            if (orderCloudData.bills && orderCloudData.bills.length > 0) setBills(orderCloudData.bills);
-          }
         } catch (err) {
           console.error('Error fetching cloud sync API:', err);
         }
 
         // 3. Fetch and merge Supabase database records if configured
-        if (isSupabaseConfigured) {
+        if (isSupabaseConfigured && supabase) {
           const dbShop = await fetchShopFromSupabase();
           if (dbShop && Object.keys(dbShop).length > 0) {
             setShop((prev) => ({ ...prev, ...dbShop }));
@@ -444,8 +443,22 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             setCategories(INITIAL_CATEGORIES);
           }
 
-          const dbOrders = await fetchOrdersFromSupabase();
-          if (dbOrders && dbOrders.length > 0) setOrders(dbOrders);
+          const { data: { user: sbUser } } = await supabase.auth.getUser();
+          if (sbUser) {
+            const custProfile: CustomerProfile = {
+              id: sbUser.id,
+              email: sbUser.email || '',
+              phone: sbUser.phone || sbUser.user_metadata?.phone || '',
+              name: sbUser.user_metadata?.name || sbUser.email?.split('@')[0] || 'Valued Customer',
+              address: sbUser.user_metadata?.address || '',
+              area: sbUser.user_metadata?.area || 'Sector 4',
+              city: sbUser.user_metadata?.city || 'New Delhi',
+              pincode: sbUser.user_metadata?.pincode || '110016',
+            };
+            setCurrentCustomer(custProfile);
+            const userDbOrders = await fetchOrdersFromSupabase(sbUser.id);
+            if (userDbOrders) setOrders(userDbOrders);
+          }
 
           const dbBills = await fetchBillsFromSupabase();
           if (dbBills && dbBills.length > 0) setBills(dbBills);
@@ -468,7 +481,12 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     // Real-time multi-device auto-sync polling for Products & Customer Orders (every 4 seconds)
     const handleSyncOnFocus = async () => {
       try {
-        const [resP, resO] = await Promise.all([fetch('/api/products'), fetch('/api/orders')]);
+        const [resP, resO] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/orders', {
+            headers: isOwnerLoggedIn ? { 'x-owner-auth': 'true' } : {},
+          }),
+        ]);
         const dataP = await resP.json();
         if (dataP.success && dataP.products && dataP.products.length > 0) {
           setProducts((prev) => {
@@ -511,7 +529,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
       window.removeEventListener('focus', handleSyncOnFocus);
       clearInterval(syncInterval);
     };
-  }, []);
+  }, [isOwnerLoggedIn]);
 
   // Save to localStorage ONLY AFTER isLoaded IS TRUE
   useEffect(() => {
@@ -526,8 +544,46 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
   useEffect(() => {
     if (!isLoaded) return;
-    localStorage.setItem('orders_data', JSON.stringify(orders));
-  }, [orders, isLoaded]);
+    if (isOwnerLoggedIn) {
+      localStorage.setItem('owner_orders_data', JSON.stringify(orders));
+    } else if (currentCustomer?.id) {
+      localStorage.setItem(`orders_${currentCustomer.id}`, JSON.stringify(orders));
+    }
+  }, [orders, currentCustomer?.id, isOwnerLoggedIn, isLoaded]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const u = session?.user;
+      if (u) {
+        const custProfile: CustomerProfile = {
+          id: u.id,
+          email: u.email || '',
+          phone: u.phone || u.user_metadata?.phone || '',
+          name: u.user_metadata?.name || u.email?.split('@')[0] || 'Valued Customer',
+          address: u.user_metadata?.address || '',
+          area: u.user_metadata?.area || 'Sector 4',
+          city: u.user_metadata?.city || 'New Delhi',
+          pincode: u.user_metadata?.pincode || '110016',
+        };
+        setCurrentCustomer(custProfile);
+        const userOrders = await fetchOrdersFromSupabase(u.id);
+        if (userOrders) {
+          setOrders(userOrders);
+        } else {
+          const cached = localStorage.getItem(`orders_${u.id}`);
+          if (cached) {
+            try { setOrders(JSON.parse(cached)); } catch { setOrders([]); }
+          }
+        }
+      } else if (!isOwnerLoggedIn) {
+        setCurrentCustomer(null);
+        setOrders([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [isOwnerLoggedIn]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -594,7 +650,42 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     setCurrentCustomer(cust);
   };
 
-  const registerCustomer = (profileData: Omit<CustomerProfile, 'id'>): CustomerProfile => {
+  const registerCustomer = async (profileData: Omit<CustomerProfile, 'id'>): Promise<CustomerProfile> => {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: profileData.email,
+          password: profileData.password || 'Password@123',
+          options: {
+            data: {
+              name: profileData.name,
+              phone: profileData.phone,
+              address: profileData.address,
+              area: profileData.area,
+              city: profileData.city,
+              pincode: profileData.pincode,
+            },
+          },
+        });
+
+        if (data.user) {
+          const cust: CustomerProfile = {
+            ...profileData,
+            id: data.user.id,
+            created_at: new Date().toISOString(),
+          };
+          setRegisteredCustomers((prev) => [cust, ...prev]);
+          setCurrentCustomer(cust);
+          return cust;
+        }
+        if (error) {
+          console.warn('[registerCustomer Supabase error]', error.message);
+        }
+      } catch (err) {
+        console.warn('[registerCustomer Supabase Notice]', err);
+      }
+    }
+
     const cust: CustomerProfile = {
       ...profileData,
       id: `cust-${Date.now()}`,
@@ -605,13 +696,58 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     return cust;
   };
 
-  const authenticateCustomer = (
+  const authenticateCustomer = async (
     identifier: string,
     pass: string
-  ): { success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile } => {
-    const cleanId = identifier.trim().toLowerCase().replace(/\s+/g, '');
-    const cleanPhoneDigits = identifier.replace(/\D/g, '');
+  ): Promise<{ success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile }> => {
+    const cleanId = identifier.trim().toLowerCase();
 
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let emailToTry = cleanId;
+        if (!cleanId.includes('@')) {
+          const regMatch = registeredCustomers.find(
+            (c) => c.phone.replace(/\D/g, '').endsWith(cleanId.replace(/\D/g, ''))
+          );
+          if (regMatch) emailToTry = regMatch.email;
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailToTry,
+          password: pass,
+        });
+
+        if (error) {
+          if (error.message.toLowerCase().includes('invalid login credentials')) {
+            return { success: false, reason: 'INVALID_PASSWORD' };
+          }
+          return { success: false, reason: 'NOT_REGISTERED' };
+        }
+
+        if (data.user) {
+          const u = data.user;
+          const cust: CustomerProfile = {
+            id: u.id,
+            email: u.email || '',
+            phone: u.phone || u.user_metadata?.phone || '',
+            name: u.user_metadata?.name || u.email?.split('@')[0] || 'Valued Customer',
+            address: u.user_metadata?.address || '',
+            area: u.user_metadata?.area || 'Sector 4',
+            city: u.user_metadata?.city || 'New Delhi',
+            pincode: u.user_metadata?.pincode || '110016',
+          };
+          setCurrentCustomer(cust);
+          const userOrders = await fetchOrdersFromSupabase(u.id);
+          if (userOrders) setOrders(userOrders);
+
+          return { success: true, customer: cust };
+        }
+      } catch (err) {
+        console.warn('[authenticateCustomer Supabase Notice]', err);
+      }
+    }
+
+    const cleanPhoneDigits = identifier.replace(/\D/g, '');
     const found = registeredCustomers.find((c) => {
       const cEmail = c.email.trim().toLowerCase();
       const cPhoneDigits = c.phone.replace(/\D/g, '');
@@ -632,8 +768,15 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     return { success: true, customer: found };
   };
 
-  const logoutCustomer = () => {
+  const logoutCustomer = async () => {
+    if (isSupabaseConfigured && supabase) {
+      try { await supabase.auth.signOut(); } catch {}
+    }
     setCurrentCustomer(null);
+    localStorage.removeItem('customer_user');
+    if (!isOwnerLoggedIn) {
+      setOrders([]);
+    }
   };
 
   const updateCustomerProfile = (fields: Partial<CustomerProfile>) => {
@@ -643,11 +786,15 @@ function sanitizeProductIds(prods: Product[]): Product[] {
   };
 
   // Owner Auth Actions
-  const loginOwner = () => {
+  const loginOwner = async () => {
     setIsOwnerLoggedIn(true);
     localStorage.setItem('owner_auth', 'true');
     if (typeof document !== 'undefined') {
       document.cookie = "owner_auth=true; path=/; max-age=86400; SameSite=Lax";
+    }
+    const allOrders = await fetchOrdersFromSupabase();
+    if (allOrders && allOrders.length > 0) {
+      setOrders(allOrders);
     }
   };
 
@@ -917,6 +1064,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     const newOrder: Order = {
       ...orderData,
       id: orderId,
+      user_id: currentCustomer?.id,
       order_number: orderNumber,
       customer_id: currentCustomer?.id,
       customer_mobile: orderData.customer_mobile || orderData.customer_phone,

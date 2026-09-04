@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   User,
@@ -17,8 +17,11 @@ import {
 } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
-export default function CustomerLoginPage() {
+function CustomerLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/products';
+
   const { shop, registerCustomer, authenticateCustomer, registeredCustomers } = useData();
 
   // Customer Mode: 'login' | 'register'
@@ -38,7 +41,7 @@ export default function CustomerLoginPage() {
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
   // Submit Handlers
-  const handleCustomerLogin = (e: React.FormEvent) => {
+  const handleCustomerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorNotice(null);
     setErrorType(null);
@@ -55,9 +58,9 @@ export default function CustomerLoginPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const res = await authenticateCustomer(custEmailOrPhone, custPassword);
       setLoading(false);
-      const res = authenticateCustomer(custEmailOrPhone, custPassword);
 
       if (!res.success) {
         if (res.reason === 'NOT_REGISTERED') {
@@ -71,12 +74,15 @@ export default function CustomerLoginPage() {
         }
       } else {
         setSuccessNotice(`Welcome back, ${res.customer?.name}! Logged in successfully. Redirecting...`);
-        setTimeout(() => router.push('/products'), 800);
+        setTimeout(() => router.push(redirectUrl), 800);
       }
-    }, 400);
+    } catch {
+      setLoading(false);
+      setErrorNotice('Authentication failed. Please try again.');
+    }
   };
 
-  const handleCustomerRegister = (e: React.FormEvent) => {
+  const handleCustomerRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorNotice(null);
     setErrorType(null);
@@ -98,9 +104,8 @@ export default function CustomerLoginPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      registerCustomer({
+    try {
+      const cust = await registerCustomer({
         name: custName.trim() || 'Valued Customer',
         email: emailToUse || 'customer@example.com',
         phone: phoneToUse || '+91 98765 00000',
@@ -111,9 +116,13 @@ export default function CustomerLoginPage() {
         password: custPassword,
       });
 
-      setSuccessNotice('Account registered successfully! Redirecting to shop...');
-      setTimeout(() => router.push('/products'), 800);
-    }, 400);
+      setLoading(false);
+      setSuccessNotice(`Account registered successfully for ${cust.name}! Redirecting...`);
+      setTimeout(() => router.push(redirectUrl), 800);
+    } catch {
+      setLoading(false);
+      setErrorNotice('Registration failed. Please try again.');
+    }
   };
 
   const switchToRegister = () => {
@@ -371,5 +380,13 @@ export default function CustomerLoginPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function CustomerLoginPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-slate-400 text-xs">Loading login page...</div>}>
+      <CustomerLoginForm />
+    </Suspense>
   );
 }

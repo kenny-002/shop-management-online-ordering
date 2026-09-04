@@ -62,13 +62,19 @@ export async function fetchCategoriesFromSupabase(): Promise<Category[] | null> 
   }
 }
 
-export async function fetchOrdersFromSupabase(): Promise<Order[] | null> {
+export async function fetchOrdersFromSupabase(userId?: string): Promise<Order[] | null> {
   if (!supabase) return null;
   try {
-    const { data: ordersData, error: ordersErr } = await supabase
+    let query = supabase
       .from('orders')
       .select('*, order_items(*)')
       .order('created_at', { ascending: false });
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data: ordersData, error: ordersErr } = await query;
 
     if (ordersErr || !ordersData) return null;
 
@@ -161,6 +167,7 @@ export async function saveOrderToSupabase(order: Order): Promise<void> {
     const { items, ...orderHeader } = order;
     const dbOrder = {
       ...orderHeader,
+      user_id: orderHeader.user_id || null,
       delivery_address: typeof orderHeader.delivery_address === 'object'
         ? JSON.stringify(orderHeader.delivery_address)
         : orderHeader.delivery_address || '',

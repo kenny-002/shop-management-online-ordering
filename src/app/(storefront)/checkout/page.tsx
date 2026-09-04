@@ -8,21 +8,21 @@ import { useData } from '@/context/data-context';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, shop, createOrder } = useData();
+  const { cart, shop, createOrder, currentCustomer } = useData();
 
   // Step 1: DETAILS, Step 2: PAYMENT
   const [currentStep, setCurrentStep] = useState<'DETAILS' | 'PAYMENT'>('DETAILS');
 
   const [deliveryType, setDeliveryType] = useState<'Home Delivery' | 'Shop Pickup'>('Home Delivery');
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerName, setCustomerName] = useState(currentCustomer?.name || '');
+  const [customerPhone, setCustomerPhone] = useState(currentCustomer?.phone || '');
+  const [customerEmail, setCustomerEmail] = useState(currentCustomer?.email || '');
 
   // Delivery Address Fields
-  const [address, setAddress] = useState('');
-  const [area, setArea] = useState('Sector 4, Green Park');
-  const [city, setCity] = useState('New Delhi');
-  const [pincode, setPincode] = useState('110016');
+  const [address, setAddress] = useState(currentCustomer?.address || '');
+  const [area, setArea] = useState(currentCustomer?.area || 'Sector 4, Green Park');
+  const [city, setCity] = useState(currentCustomer?.city || 'New Delhi');
+  const [pincode, setPincode] = useState(currentCustomer?.pincode || '110016');
   const [instructions, setInstructions] = useState('');
 
   // Payment Selection State ('Cash' vs 'UPI')
@@ -34,6 +34,30 @@ export default function CheckoutPage() {
   const subtotal = cart.reduce((acc, item) => acc + item.product.selling_price * item.quantity, 0);
   const deliveryCharge = deliveryType === 'Home Delivery' ? shop.delivery_charge : 0;
   const totalAmount = subtotal + deliveryCharge;
+
+  if (!currentCustomer) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-8 space-y-4 shadow-xl">
+          <div className="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+            🔒
+          </div>
+          <h2 className="text-2xl font-black text-white">Login Required to Place Order</h2>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Please log in to place an order. Your cart items are preserved so you can complete your order immediately after login.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/login?redirect=/checkout"
+              className="inline-block bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold px-8 py-3.5 rounded-2xl text-xs shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
+            >
+              Log In / Register to Place Order →
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (cart.length === 0) {
     return (
