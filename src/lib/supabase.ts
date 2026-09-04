@@ -125,7 +125,14 @@ export async function fetchInvestmentsFromSupabase(): Promise<Investment[] | nul
   try {
     const { data, error } = await supabase.from('investments').select('*').order('created_at', { ascending: false });
     if (error || !data) return null;
-    return data as Investment[];
+    return data.map((inv) => ({
+      id: inv.id,
+      amount: Number(inv.amount) || 0,
+      category: inv.category || 'Stock Purchase',
+      description: inv.description || inv.title || inv.notes || inv.category || 'Store Investment',
+      date: inv.date || new Date().toISOString().split('T')[0],
+      created_at: inv.created_at,
+    })) as Investment[];
   } catch (err: unknown) {
     console.warn('[Supabase fetchInvestments Notice]', err);
     return null;
@@ -259,7 +266,21 @@ export async function saveExpenseToSupabase(expense: Expense): Promise<void> {
 export async function saveInvestmentToSupabase(investment: Investment): Promise<void> {
   if (!supabase) return;
   try {
-    await supabase.from('investments').upsert(investment);
+    const dbPayload = {
+      id: investment.id,
+      title: investment.description || investment.category || 'Store Investment',
+      description: investment.description || '',
+      notes: investment.description || '',
+      category: investment.category || 'Stock Purchase',
+      amount: Number(investment.amount) || 0,
+      date: investment.date || new Date().toISOString().split('T')[0],
+      owner_email: 'dinesh2122007@gmail.com',
+      created_at: investment.created_at || new Date().toISOString(),
+    };
+    const { error } = await supabase.from('investments').upsert(dbPayload);
+    if (error) {
+      console.warn('[Supabase saveInvestment Notice]', error.message || error);
+    }
   } catch (err: unknown) {
     console.warn('[Supabase saveInvestment Notice]', err);
   }

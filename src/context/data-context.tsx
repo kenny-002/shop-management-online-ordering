@@ -362,7 +362,14 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           if (dbExpenses && dbExpenses.length > 0) setExpenses(dbExpenses);
 
           const dbInvestments = await fetchInvestmentsFromSupabase();
-          if (dbInvestments && dbInvestments.length > 0) setInvestments(dbInvestments);
+          if (dbInvestments && dbInvestments.length > 0) {
+            setInvestments((prev) => {
+              const map = new Map<string, Investment>();
+              prev.forEach((i) => map.set(i.id, i));
+              dbInvestments.forEach((i) => map.set(i.id, { ...map.get(i.id), ...i }));
+              return Array.from(map.values());
+            });
+          }
         }
       } catch (e) {
         console.error('Error loading initial data:', e);
@@ -373,14 +380,19 @@ function sanitizeProductIds(prods: Product[]): Product[] {
 
     initData();
 
-    // Real-time multi-device auto-sync polling for Products & Customer Orders (every 4 seconds)
+    // Real-time multi-device auto-sync polling for Products, Orders, and Investments (every 4 seconds)
     const handleSyncOnFocus = async () => {
       try {
-        const [resP, resO] = await Promise.all([
+        const [resP, resO, resI] = await Promise.all([
           fetch('/api/products'),
           fetch('/api/orders', {
             headers: isOwnerLoggedIn ? { 'x-owner-auth': 'true' } : {},
           }),
+          isOwnerLoggedIn
+            ? fetch('/api/investments', {
+                headers: { 'x-owner-auth': 'true' },
+              })
+            : Promise.resolve(null),
         ]);
         const dataP = await resP.json();
         if (dataP.success && Array.isArray(dataP.products) && dataP.products.length > 0) {
@@ -414,6 +426,17 @@ function sanitizeProductIds(prods: Product[]): Product[] {
               return Array.from(map.values()).sort(
                 (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
               );
+            });
+          }
+        }
+        if (resI) {
+          const dataI = await resI.json();
+          if (dataI.success && Array.isArray(dataI.investments) && dataI.investments.length > 0) {
+            setInvestments((prev) => {
+              const map = new Map<string, Investment>();
+              prev.forEach((i) => map.set(i.id, i));
+              dataI.investments.forEach((i: Investment) => map.set(i.id, { ...map.get(i.id), ...i }));
+              return Array.from(map.values());
             });
           }
         }
@@ -1091,14 +1114,26 @@ function sanitizeProductIds(prods: Product[]): Product[] {
   };
 
   const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    // Push status update to Multi-Device Cloud API
+    // Push status update to Multi-Device Cloud API & Supabase
     try {
       fetch('/api/orders', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
         body: JSON.stringify({ orderId, status: newStatus }),
       }).catch(() => {});
     } catch {}
+
+    if (isSupabaseConfigured && supabase) {
+      supabase
+        .from('orders')
+        .update({ order_status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', orderId)
+        .then();
+    }
 
     setOrders((prev) =>
       prev.map((ord) => {
@@ -1146,6 +1181,18 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     };
     setInvestments((prev) => [newInv, ...prev]);
     saveInvestmentToSupabase(newInv);
+
+    try {
+      fetch('/api/investments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
+        body: JSON.stringify(newInv),
+      }).catch(() => {});
+    } catch {}
   };
 
   const addExpense = (exp: Omit<Expense, 'id'>) => {
