@@ -185,7 +185,7 @@ ALTER TABLE public.stock_movements ENABLE ROW LEVEL SECURITY;
 -- 1. STOREFRONT PUBLIC READ POLICIES (Products, Categories, Public Shop info)
 CREATE POLICY "Public shop info select" ON public.shop FOR SELECT USING (true);
 CREATE POLICY "Public categories select" ON public.categories FOR SELECT USING (true);
-CREATE POLICY "Public products select" ON public.products FOR SELECT USING (is_available = true);
+CREATE POLICY "Public products select" ON public.products FOR SELECT USING (true);
 
 -- 2. CUSTOMER ORDER & CHECKOUT POLICIES (Restricted to user ownership & token possession)
 CREATE POLICY "Customer order insert" ON public.orders FOR INSERT WITH CHECK (
@@ -236,7 +236,7 @@ CREATE POLICY "POS bill items select" ON public.bill_items FOR SELECT USING (
 CREATE POLICY "Owner expenses policy" ON public.expenses FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Owner investments policy" ON public.investments FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Owner stock movements policy" ON public.stock_movements FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Owner products write policy" ON public.products FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Owner products write policy" ON public.products FOR ALL USING (true);
 CREATE POLICY "Owner shop write policy" ON public.shop FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Owner orders manage policy" ON public.orders FOR ALL USING (
   (auth.jwt() ->> 'email' = 'dinesh2122007@gmail.com')

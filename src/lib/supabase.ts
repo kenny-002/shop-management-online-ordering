@@ -41,9 +41,28 @@ export async function fetchShopFromSupabase(): Promise<Partial<ShopSettings> | n
 export async function fetchProductsFromSupabase(): Promise<Product[] | null> {
   if (!supabase) return null;
   try {
-    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
     if (error || !data) return null;
-    return data as Product[];
+
+    return data.map((item) => ({
+      id: item.id,
+      name: item.name || 'Unnamed Product',
+      category_id: item.category_id || 'cat-1',
+      brand: item.brand || 'Sri Samundi',
+      description: item.description || '',
+      purchase_price: Number(item.purchase_price) || 0,
+      selling_price: Number(item.selling_price) || 0,
+      stock_quantity: Number(item.stock_quantity) || 0,
+      low_stock_limit: Number(item.low_stock_limit) || 5,
+      image_url: item.image_url || 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80',
+      is_active: item.is_available !== false && item.is_active !== false,
+      created_at: item.created_at || new Date().toISOString(),
+      updated_at: item.updated_at || new Date().toISOString(),
+    })) as Product[];
   } catch (err: unknown) {
     console.warn('[Supabase fetchProducts Notice]', err);
     return null;
@@ -156,12 +175,15 @@ export async function saveProductToSupabase(product: Product): Promise<void> {
     const dbPayload = {
       id: product.id,
       name: product.name,
+      brand: product.brand || 'Sri Samundi',
       description: product.description || '',
       category_id: product.category_id || 'cat-1',
       purchase_price: Number(product.purchase_price) || 0,
       selling_price: Number(product.selling_price) || 0,
       stock_quantity: Number(product.stock_quantity) || 0,
+      low_stock_limit: Number(product.low_stock_limit) || 5,
       image_url: product.image_url || '',
+      is_available: product.is_active !== false,
       owner_email: 'dinesh2122007@gmail.com',
       created_at: product.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),

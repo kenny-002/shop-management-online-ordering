@@ -193,7 +193,20 @@ function sanitizeProductIds(prods: Product[]): Product[] {
       id = `p-sanitized-${idx}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     }
     seen.add(id);
-    return { ...p, id };
+    return {
+      ...p,
+      id,
+      name: p.name || 'Unnamed Product',
+      category_id: p.category_id || 'cat-1',
+      brand: p.brand || 'Sri Samundi',
+      description: p.description || '',
+      purchase_price: Number(p.purchase_price) || 0,
+      selling_price: Number(p.selling_price) || 0,
+      stock_quantity: Number(p.stock_quantity) || 0,
+      low_stock_limit: Number(p.low_stock_limit) || 5,
+      image_url: p.image_url || 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80',
+      is_active: p.is_active !== false,
+    };
   });
 }
 
@@ -292,16 +305,9 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             fetch('/api/products'),
           ]);
           const cloudData = await cloudRes.json();
-          if (cloudData.success && Array.isArray(cloudData.products) && cloudData.products.length > 0) {
+          if (cloudData.success && Array.isArray(cloudData.products)) {
             const filteredCloud = cloudData.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-            if (filteredCloud.length > 0) {
-              setProducts((prev) => {
-                const map = new Map<string, Product>();
-                prev.forEach((p) => map.set(p.id, p));
-                filteredCloud.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-                return sanitizeProductIds(Array.from(map.values()));
-              });
-            }
+            setProducts(sanitizeProductIds(filteredCloud));
           }
         } catch (err) {
           console.error('Error fetching cloud sync API:', err);
@@ -315,16 +321,9 @@ function sanitizeProductIds(prods: Product[]): Product[] {
           }
 
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts && dbProducts.length > 0) {
+          if (dbProducts !== null && Array.isArray(dbProducts)) {
             const filteredDb = dbProducts.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-            if (filteredDb.length > 0) {
-              setProducts((prev) => {
-                const map = new Map<string, Product>();
-                prev.forEach((p) => map.set(p.id, p));
-                filteredDb.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-                return sanitizeProductIds(Array.from(map.values()));
-              });
-            }
+            setProducts(sanitizeProductIds(filteredDb));
           }
 
           const dbCategories = await fetchCategoriesFromSupabase();
@@ -395,16 +394,9 @@ function sanitizeProductIds(prods: Product[]): Product[] {
             : Promise.resolve(null),
         ]);
         const dataP = await resP.json();
-        if (dataP.success && Array.isArray(dataP.products) && dataP.products.length > 0) {
+        if (dataP.success && Array.isArray(dataP.products)) {
           const filteredSync = dataP.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
-          if (filteredSync.length > 0) {
-            setProducts((prev) => {
-              const map = new Map<string, Product>();
-              prev.forEach((p) => map.set(p.id, p));
-              filteredSync.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-              return sanitizeProductIds(Array.from(map.values()));
-            });
-          }
+          setProducts(sanitizeProductIds(filteredSync));
         }
         const dataO = await resO.json();
         if (dataO.success) {

@@ -30,8 +30,8 @@ export default function OwnerProductsPage() {
   const filteredProducts = products.filter((p) => {
     const matchQuery =
       !searchQuery.trim() ||
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.brand.toLowerCase().includes(searchQuery.toLowerCase());
+      (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.brand || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchCategory = selectedCategory === 'ALL' || p.category_id === selectedCategory;
     return matchQuery && matchCategory;
   });

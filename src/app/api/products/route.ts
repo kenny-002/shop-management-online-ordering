@@ -13,12 +13,15 @@ function sanitizeProductForDb(product: Partial<Product>) {
   return {
     id: product.id,
     name: product.name,
+    brand: product.brand || 'Sri Samundi',
     description: product.description || '',
     category_id: product.category_id || 'cat-1',
     purchase_price: Number(product.purchase_price) || 0,
     selling_price: Number(product.selling_price) || 0,
     stock_quantity: Number(product.stock_quantity) || 0,
+    low_stock_limit: Number(product.low_stock_limit) || 5,
     image_url: product.image_url || '',
+    is_available: product.is_active !== false,
     owner_email: 'dinesh2122007@gmail.com',
     created_at: product.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -34,32 +37,27 @@ export async function GET() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         // Filter out any legacy p-samundi- default items if present
         const realItems = data.filter((item) => item && item.id && !item.id.startsWith('p-samundi-'));
-        realItems.forEach((item) => {
-          const idx = globalProductStore.findIndex((p) => p.id === item.id);
-          const mapped: Product = {
-            id: item.id,
-            name: item.name,
-            category_id: item.category_id || 'cat-1',
-            brand: item.brand || 'Sri Samundi',
-            description: item.description || '',
-            purchase_price: Number(item.purchase_price) || 0,
-            selling_price: Number(item.selling_price) || 0,
-            stock_quantity: Number(item.stock_quantity) || 0,
-            low_stock_limit: Number(item.low_stock_limit) || 5,
-            image_url: item.image_url || '',
-            is_active: item.is_available !== false,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-          };
-          if (idx >= 0) {
-            globalProductStore[idx] = { ...globalProductStore[idx], ...mapped };
-          } else {
-            globalProductStore.push(mapped);
-          }
-        });
+        const supabaseProducts: Product[] = realItems.map((item) => ({
+          id: item.id,
+          name: item.name || 'Unnamed Product',
+          category_id: item.category_id || 'cat-1',
+          brand: item.brand || 'Sri Samundi',
+          description: item.description || '',
+          purchase_price: Number(item.purchase_price) || 0,
+          selling_price: Number(item.selling_price) || 0,
+          stock_quantity: Number(item.stock_quantity) || 0,
+          low_stock_limit: Number(item.low_stock_limit) || 5,
+          image_url: item.image_url || 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80',
+          is_active: item.is_available !== false && item.is_active !== false,
+          created_at: item.created_at || new Date().toISOString(),
+          updated_at: item.updated_at || new Date().toISOString(),
+        }));
+
+        globalProductStore.length = 0;
+        globalProductStore.push(...supabaseProducts);
         return NextResponse.json({ success: true, products: globalProductStore, source: 'supabase' });
       }
     }

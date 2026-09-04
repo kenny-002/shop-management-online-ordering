@@ -30,9 +30,9 @@ function ProductCatalogContent() {
         // Search query
         const matchQuery =
           !searchQuery.trim() ||
-          p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.toLowerCase());
+          (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.brand || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (p.description || '').toLowerCase().includes(searchQuery.toLowerCase());
 
         // Category filter
         const matchCategory =
