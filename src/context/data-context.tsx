@@ -72,9 +72,8 @@ const INITIAL_SHOP: ShopSettings = {
   delivery_charge: 30,
   minimum_order: 100,
   delivery_areas: 'Local Market, Main Road, Nearby Residences',
-  upi_id: 'srisamundi@upi',
-  qr_code_url:
-    'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=srisamundi@upi&pn=Sri%20Samundi%20Store',
+  upi_id: 'dinesh2122007@okicici',
+  qr_code_url: '/images/payment/gpay-qr.png',
   auto_generate_bill: true,
   auto_send_bill: true,
   preferred_delivery_method: 'WHATSAPP',
