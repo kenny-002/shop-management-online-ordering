@@ -482,7 +482,7 @@ This feedback was identified as a future product-catalogue improvement based on 
 | Before | After |
 |---|---|
 | Light Mode interface | Dark Mode available |
-| `before-light-mode.png` | `after-dark-mode.png` |
+| ![Before - Light Mode](docs/screenshots/before-light-mode.png) | ![After - Dark Mode](docs/screenshots/after-dark-mode.png) |
 
 The screenshots demonstrate the visual change implemented after user feedback.
 
