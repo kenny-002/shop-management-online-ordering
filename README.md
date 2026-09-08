@@ -317,3 +317,223 @@ npm run build
 ## 22. Evaluation Metadata & Contributors
 Developed for **Shop Management & Online Ordering System** Final Evaluation Project.
 - **Tech Lead & Developer**: Dinesh S (`dinesh2122007@gmail.com`)
+
+---
+
+# 23. Project Better Tomorrow – Design Thinking & User Validation
+
+This project was further developed and evaluated using a Design Thinking approach under the Project Better Tomorrow activity.
+
+## Design Thinking Process
+
+**Empathize → Define → Ideate → Prototype → Validate → Iterate**
+
+### Empathize
+
+The project was based on a real local retail shop context, Sri Samundi Store & Tea Stall.
+
+The project considered customer difficulties related to product availability, pricing, ordering and shop visits, as well as owner challenges involving product management, inventory, orders, billing and financial tracking.
+
+### Define
+
+The identified problem was the lack of a convenient digital system that allows customers to view products and place orders while helping the shop owner manage inventory, orders, billing and business operations.
+
+### How Might We?
+
+> How might we create a simple digital platform that allows customers to view available products, place orders conveniently, and helps the shop owner manage inventory, orders, billing and business information efficiently?
+
+### Ideate
+
+AI was used as an ideation and refinement assistant.
+
+Ideas included:
+
+- Online product catalogue
+- Search and filtering
+- Shopping cart
+- Online ordering
+- Home delivery
+- Shop pickup
+- UPI/COD payment
+- Order tracking
+- Digital invoices
+- Owner dashboard
+- Inventory management
+- POS billing
+- Sales analytics
+- Expense management
+- Investment tracking
+- Profit analytics
+- Theme customization
+- Multi-device synchronization
+
+### Prototype
+
+The selected ideas were implemented as a working full-stack web application using Next.js, React, TypeScript, Tailwind CSS and Supabase/PostgreSQL.
+
+---
+
+## 23.1 RAALE Pathway Followed
+
+### Pathway A – Continuation Track
+
+The project followed **Pathway A: Continuation Track**.
+
+The existing real-world problem and empathy/context were carried forward from the previous project work.
+
+The project then progressed through:
+
+**Existing Problem & Empathy**
+
+↓
+
+**Define**
+
+↓
+
+**AI-Assisted Ideation**
+
+↓
+
+**Prototype**
+
+↓
+
+**User Testing**
+
+↓
+
+**Feedback**
+
+↓
+
+**Iteration**
+
+↓
+
+**Validation**
+
+---
+
+## 23.2 User Validation Study
+
+The working prototype was evaluated by three testers.
+
+The validation focused on:
+
+- Overall website experience
+- Owner dashboard usability
+- Product discovery
+- Website difficulties
+- Search and filtering
+- Suggested improvements
+
+The anonymous tester responses are documented separately in the validation evidence.
+
+### Validation Summary
+
+| Tester | Experience | Product Finding | Difficulty | Search/Filter | Main Feedback |
+|---|---|---|---|---|---|
+| Tester 1 | Nice | Yes | No | Yes | Add both dark and light backgrounds |
+| Tester 2 | Good | Easy | No | Yes | Good |
+| Tester 3 | Nice | Yes | No | Yes | More products |
+
+---
+
+## 23.3 Feedback-Based Iteration
+
+### Iteration 1 – Light/Dark Mode
+
+**Tester Feedback:**
+
+> "Change the theme include both dark and light background"
+
+**Finding:**
+
+The tester suggested providing users with both light and dark visual themes.
+
+**Action Taken:**
+
+A Light/Dark Mode toggle was implemented in the website interface.
+
+**Evidence:**
+
+- Before: `docs/screenshots/before-light-mode.png`
+- After: `docs/screenshots/after-dark-mode.png`
+
+This demonstrates:
+
+**User Feedback → Design Change → Implementation → Visual Evidence**
+
+---
+
+### Iteration 2 – Product Catalogue
+
+A tester suggested adding more products.
+
+This feedback was identified as a future product-catalogue improvement based on actual shop inventory and requirements.
+
+---
+
+## 23.4 Before / After Evidence
+
+### Theme Mode Improvement
+
+| Before | After |
+|---|---|
+| Light Mode interface | Dark Mode available |
+| `before-light-mode.png` | `after-dark-mode.png` |
+
+The screenshots demonstrate the visual change implemented after user feedback.
+
+Additional evidence is available in:
+
+`docs/screenshots/`
+
+---
+
+## 23.5 Validation Report
+
+The complete Project Better Tomorrow validation report is available in:
+
+`docs/validation/Project_Better_Tomorrow_Final_Validation_Report.pdf`
+
+`docs/validation/Project_Better_Tomorrow_Final_Validation_Report.docx`
+
+The report contains:
+
+- Design Thinking documentation
+- Empathy
+- Problem Definition
+- How Might We statement
+- AI-assisted ideation
+- Prototype description
+- User validation
+- Three tester responses
+- Feedback analysis
+- Iteration
+- Before/After evidence
+- Final validation outcome
+
+---
+
+## 23.6 Evidence Repository Structure
+
+```text
+docs/
+├── design-thinking/
+│   └── design-thinking-documentation.md
+│
+├── screenshots/
+│   ├── before-light-mode.png
+│   ├── after-dark-mode.png
+│   └── existing project screenshots...
+│
+├── user-testing/
+│   └── validation-responses.xlsx
+│
+└── validation/
+    ├── Project_Better_Tomorrow_Final_Validation_Report.pdf
+    └── Project_Better_Tomorrow_Final_Validation_Report.docx
+```
+
