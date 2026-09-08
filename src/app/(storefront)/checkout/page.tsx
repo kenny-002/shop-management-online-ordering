@@ -36,6 +36,13 @@ export default function CheckoutPage() {
   const deliveryCharge = deliveryType === 'Home Delivery' ? shop.delivery_charge : 0;
   const totalAmount = subtotal + deliveryCharge;
 
+  const displayQrCodeUrl =
+    shop.qr_code_url && !shop.qr_code_url.includes('qrserver.com') && !shop.qr_code_url.includes('srisamundi@upi')
+      ? shop.qr_code_url
+      : '/images/payment/gpay-qr.png';
+  const displayUpiId =
+    shop.upi_id && shop.upi_id !== 'srisamundi@upi' ? shop.upi_id : 'dinesh2122007@okicici';
+
   if (!currentCustomer) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-6">
@@ -475,7 +482,7 @@ export default function CheckoutPage() {
                 {/* QR Display Card with Quiet Zone */}
                 <div className="bg-white p-4 rounded-2xl w-48 sm:w-60 h-48 sm:h-60 mx-auto border border-slate-200 shadow-md flex items-center justify-center relative group">
                   <img
-                    src={shop.qr_code_url}
+                    src={displayQrCodeUrl}
                     alt="Sri Samundi Store UPI payment QR code"
                     className="w-full h-full object-contain aspect-square rounded-lg"
                   />
@@ -498,7 +505,7 @@ export default function CheckoutPage() {
                   </p>
                   <div className="pt-1.5">
                     <code className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-white dark:bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 inline-block shadow-xs">
-                      UPI ID: {shop.upi_id}
+                      UPI ID: {displayUpiId}
                     </code>
                   </div>
                 </div>
@@ -584,14 +591,14 @@ export default function CheckoutPage() {
 
             <div className="bg-white p-4 rounded-2xl w-64 h-64 mx-auto border border-slate-200 shadow-md flex items-center justify-center">
               <img
-                src={shop.qr_code_url}
+                src={displayQrCodeUrl}
                 alt="Sri Samundi Store UPI payment QR code"
                 className="w-full h-full object-contain aspect-square"
               />
             </div>
 
             <div className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-slate-100 dark:bg-slate-950 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
-              UPI ID: {shop.upi_id}
+              UPI ID: {displayUpiId}
             </div>
 
             <button

@@ -682,9 +682,15 @@ Thank you for shopping with us! 🙏`;
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Store Counter UPI QR Code</h3>
             <div className="bg-white p-3 rounded-2xl w-48 h-48 mx-auto shadow-inner border border-slate-200 flex items-center justify-center">
-              <img src={shop.qr_code_url} alt="Shop QR Code" className="w-full h-full object-contain" />
+              <img
+                src={shop.qr_code_url && !shop.qr_code_url.includes('qrserver.com') && !shop.qr_code_url.includes('srisamundi@upi') ? shop.qr_code_url : '/images/payment/gpay-qr.png'}
+                alt="Shop QR Code"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold font-mono">{shop.upi_id}</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold font-mono">
+              {shop.upi_id && shop.upi_id !== 'srisamundi@upi' ? shop.upi_id : 'dinesh2122007@okicici'}
+            </p>
             <button
               onClick={() => setShowQRModal(false)}
               className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs"

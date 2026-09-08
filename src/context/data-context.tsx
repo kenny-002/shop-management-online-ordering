@@ -221,7 +221,14 @@ function sanitizeProductIds(prods: Product[]): Product[] {
         if (savedShop) {
           try {
             const parsed = JSON.parse(savedShop);
+            if (!parsed.upi_id || parsed.upi_id === 'srisamundi@upi') {
+              parsed.upi_id = 'dinesh2122007@okicici';
+            }
+            if (!parsed.qr_code_url || parsed.qr_code_url.includes('qrserver.com') || parsed.qr_code_url.includes('srisamundi')) {
+              parsed.qr_code_url = '/images/payment/gpay-qr.png';
+            }
             setShop((prev) => ({ ...prev, ...parsed }));
+            localStorage.setItem('shop_data', JSON.stringify({ ...INITIAL_SHOP, ...parsed }));
           } catch {}
         }
 
