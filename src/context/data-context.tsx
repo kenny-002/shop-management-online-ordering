@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import {
   ShopSettings,
   Category,
@@ -18,6 +18,7 @@ import {
 } from '@/lib/types';
 import {
   isSupabaseConfigured,
+  supabase,
   fetchShopFromSupabase,
   fetchProductsFromSupabase,
   fetchCategoriesFromSupabase,
@@ -25,8 +26,10 @@ import {
   fetchBillsFromSupabase,
   fetchExpensesFromSupabase,
   fetchInvestmentsFromSupabase,
+  ensureCategoriesInSupabase,
   saveProductToSupabase,
   deleteProductFromSupabase,
+  clearAllProductsFromSupabase,
   saveOrderToSupabase,
   saveBillToSupabase,
   saveExpenseToSupabase,
@@ -90,120 +93,7 @@ const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-7', name: 'Spices & Essentials', image_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=400&q=80' },
 ];
 
-const INITIAL_PRODUCTS: Product[] = [
-  {
-    id: 'p-samundi-1',
-    name: 'Special Masala Milk Tea (Cup)',
-    category_id: 'cat-1',
-    brand: 'Sri Samundi',
-    description: 'Fresh hot brewed ginger cardamom masala tea',
-    purchase_price: 6,
-    selling_price: 12,
-    stock_quantity: 100,
-    low_stock_limit: 20,
-    image_url: '/images/shop/sri-samundi-counter-display.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-2',
-    name: 'Filter Coffee (Cup)',
-    category_id: 'cat-1',
-    brand: 'Sri Samundi',
-    description: 'Authentic South Indian aromatic filter coffee',
-    purchase_price: 8,
-    selling_price: 15,
-    stock_quantity: 80,
-    low_stock_limit: 15,
-    image_url: '/images/shop/sri-samundi-counter-display.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-3',
-    name: 'Butter Milk Rusk & Biscuit Pack',
-    category_id: 'cat-2',
-    brand: 'Sri Samundi / Britannia',
-    description: 'Crispy tea time snack biscuits & rusks',
-    purchase_price: 8,
-    selling_price: 10,
-    stock_quantity: 60,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-4',
-    name: 'Full Cream Milk Packet 500ml',
-    category_id: 'cat-4',
-    brand: 'Aavin / Amul',
-    description: 'Fresh pasteurized daily milk packet',
-    purchase_price: 24,
-    selling_price: 28,
-    stock_quantity: 40,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-store-front.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-5',
-    name: 'MilkyMist Ice Cream Cone / Tub',
-    category_id: 'cat-3',
-    brand: 'MilkyMist',
-    description: 'Delicious chilled ice cream cone & tub',
-    purchase_price: 30,
-    selling_price: 40,
-    stock_quantity: 35,
-    low_stock_limit: 8,
-    image_url: '/images/shop/sri-samundi-board-sign.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-6',
-    name: 'Chilled Soft Drink Bottle 500ml',
-    category_id: 'cat-3',
-    brand: 'Thums Up / Coca-Cola',
-    description: 'Refreshing cold soft drink bottle',
-    purchase_price: 32,
-    selling_price: 40,
-    stock_quantity: 30,
-    low_stock_limit: 5,
-    image_url: '/images/shop/sri-samundi-board-sign.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-7',
-    name: 'Bisleri Mineral Water Bottle 1L',
-    category_id: 'cat-3',
-    brand: 'Bisleri',
-    description: 'Pure packaged drinking water bottle 1 Litre',
-    purchase_price: 14,
-    selling_price: 20,
-    stock_quantity: 50,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-store-inside.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'p-samundi-8',
-    name: 'Crispy South Indian Murukku Pack',
-    category_id: 'cat-2',
-    brand: 'Sri Samundi',
-    description: 'Fresh homemade crunchy savoury murukku snack',
-    purchase_price: 20,
-    selling_price: 30,
-    stock_quantity: 45,
-    low_stock_limit: 10,
-    image_url: '/images/shop/sri-samundi-biscuits-snacks.jpg',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-];
+const INITIAL_PRODUCTS: Product[] = [];
 const INITIAL_INVESTMENTS: Investment[] = [];
 const INITIAL_EXPENSES: Expense[] = [];
 const INITIAL_ORDERS: Order[] = [];
@@ -226,13 +116,13 @@ interface DataContextType {
   registeredCustomers: CustomerProfile[];
   currentCustomer: CustomerProfile | null;
   loginCustomer: (email: string, phone: string, name?: string) => void;
-  registerCustomer: (profile: Omit<CustomerProfile, 'id'>) => CustomerProfile;
+  registerCustomer: (profile: Omit<CustomerProfile, 'id'>) => Promise<CustomerProfile> | CustomerProfile;
   authenticateCustomer: (
     identifier: string,
     pass: string
-  ) => { success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile };
+  ) => Promise<{ success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile }> | { success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile };
   updateCustomerProfile: (fields: Partial<CustomerProfile>) => void;
-  logoutCustomer: () => void;
+  logoutCustomer: () => Promise<void> | void;
 
   loginOwner: () => void;
   logoutOwner: () => void;
@@ -296,6 +186,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isOwnerLoggedIn, setIsOwnerLoggedIn] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const deletedProductIdsRef = useRef<Set<string>>(new Set());
+
+function sanitizeProductIds(prods: Product[]): Product[] {
+  const seen = new Set<string>();
+  return prods.map((p, idx) => {
+    let id = p.id;
+    if (!id || seen.has(id)) {
+      id = `p-sanitized-${idx}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    }
+    seen.add(id);
+    return {
+      ...p,
+      id,
+      name: p.name || 'Unnamed Product',
+      category_id: p.category_id || 'cat-1',
+      brand: p.brand || 'Sri Samundi',
+      description: p.description || '',
+      purchase_price: Number(p.purchase_price) || 0,
+      selling_price: Number(p.selling_price) || 0,
+      stock_quantity: Number(p.stock_quantity) || 0,
+      low_stock_limit: Number(p.low_stock_limit) || 5,
+      image_url: p.image_url || 'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=400&q=80',
+      is_active: p.is_active !== false,
+    };
+  });
+}
+
   // Initialize data from localStorage & sync Supabase / Cloud API
   useEffect(() => {
     async function initData() {
@@ -306,7 +223,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           try {
             const parsed = JSON.parse(savedShop);
             setShop((prev) => ({ ...prev, ...parsed }));
-          } catch (e) {}
+          } catch {}
         }
 
         const savedProducts = localStorage.getItem('products_data');
@@ -314,44 +231,54 @@ export function DataProvider({ children }: { children: ReactNode }) {
           try {
             const parsedProds = JSON.parse(savedProducts);
             if (Array.isArray(parsedProds) && parsedProds.length > 0) {
-              setProducts(parsedProds);
+              const filtered = parsedProds.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
+              setProducts(sanitizeProductIds(filtered));
             } else {
-              setProducts(INITIAL_PRODUCTS);
+              setProducts([]);
             }
-          } catch (e) {
-            setProducts(INITIAL_PRODUCTS);
+          } catch {
+            setProducts([]);
           }
         } else {
-          setProducts(INITIAL_PRODUCTS);
+          setProducts([]);
         }
 
         const savedOrders = localStorage.getItem('orders_data');
         if (savedOrders) {
-          try { setOrders(JSON.parse(savedOrders)); } catch (e) {}
+          localStorage.removeItem('orders_data');
         }
 
         const savedInvestments = localStorage.getItem('investments_data');
         if (savedInvestments) {
-          try { setInvestments(JSON.parse(savedInvestments)); } catch (e) {}
+          try { setInvestments(JSON.parse(savedInvestments)); } catch {}
         }
 
         const savedExpenses = localStorage.getItem('expenses_data');
         if (savedExpenses) {
-          try { setExpenses(JSON.parse(savedExpenses)); } catch (e) {}
+          try { setExpenses(JSON.parse(savedExpenses)); } catch {}
         }
 
         const savedBills = localStorage.getItem('bills_data');
         if (savedBills) {
-          try { setBills(JSON.parse(savedBills)); } catch (e) {}
+          try { setBills(JSON.parse(savedBills)); } catch {}
         }
 
         const savedCart = localStorage.getItem('cart_data');
         if (savedCart) {
-          try { setCart(JSON.parse(savedCart)); } catch (e) {}
+          try { setCart(JSON.parse(savedCart)); } catch {}
         }
 
         const savedAuth = localStorage.getItem('owner_auth');
-        if (savedAuth === 'true') setIsOwnerLoggedIn(true);
+        if (savedAuth === 'true') {
+          setIsOwnerLoggedIn(true);
+          if (typeof document !== 'undefined') {
+            document.cookie = "owner_auth=true; path=/; max-age=86400; SameSite=Lax";
+          }
+          const allOwnerOrders = await fetchOrdersFromSupabase();
+          if (allOwnerOrders && allOwnerOrders.length > 0) {
+            setOrders(allOwnerOrders);
+          }
+        }
 
         const savedRegisteredCusts = localStorage.getItem('registered_customers_data');
         if (savedRegisteredCusts) {
@@ -359,7 +286,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             const parsedCusts: CustomerProfile[] = JSON.parse(savedRegisteredCusts);
             const filtered = parsedCusts.filter((c) => c.id !== 'cust-demo-1' && c.email !== 'ramesh.customer@example.com');
             setRegisteredCustomers(filtered);
-          } catch (e) {}
+          } catch {}
         }
 
         const savedCust = localStorage.getItem('customer_user');
@@ -372,47 +299,58 @@ export function DataProvider({ children }: { children: ReactNode }) {
               localStorage.removeItem('customer_user');
               setCurrentCustomer(null);
             }
-          } catch (e) {}
+          } catch {}
         }
 
         // 2. Fetch products & live customer orders via Multi-Device Cloud API
         try {
-          const [cloudRes, orderCloudRes] = await Promise.all([
+          const [cloudRes] = await Promise.all([
             fetch('/api/products'),
-            fetch('/api/orders'),
           ]);
           const cloudData = await cloudRes.json();
-          if (cloudData.success && cloudData.products && cloudData.products.length > 0) {
+          if (cloudData.success && Array.isArray(cloudData.products)) {
+            const filteredCloud = cloudData.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
             setProducts((prev) => {
               const map = new Map<string, Product>();
-              prev.forEach((p) => map.set(p.id, p));
-              cloudData.products.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-              return Array.from(map.values());
+              filteredCloud.forEach((p: Product) => {
+                if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+              });
+              prev.forEach((localP) => {
+                if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                  map.set(localP.id, localP);
+                  saveProductToSupabase(localP);
+                }
+              });
+              return sanitizeProductIds(Array.from(map.values()));
             });
-          }
-          const orderCloudData = await orderCloudRes.json();
-          if (orderCloudData.success) {
-            if (orderCloudData.orders && orderCloudData.orders.length > 0) setOrders(orderCloudData.orders);
-            if (orderCloudData.bills && orderCloudData.bills.length > 0) setBills(orderCloudData.bills);
           }
         } catch (err) {
           console.error('Error fetching cloud sync API:', err);
         }
 
         // 3. Fetch and merge Supabase database records if configured
-        if (isSupabaseConfigured) {
+        if (isSupabaseConfigured && supabase) {
+          await ensureCategoriesInSupabase();
           const dbShop = await fetchShopFromSupabase();
           if (dbShop && Object.keys(dbShop).length > 0) {
             setShop((prev) => ({ ...prev, ...dbShop }));
           }
 
           const dbProducts = await fetchProductsFromSupabase();
-          if (dbProducts && dbProducts.length > 0) {
+          if (dbProducts !== null && Array.isArray(dbProducts)) {
+            const filteredDb = dbProducts.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
             setProducts((prev) => {
               const map = new Map<string, Product>();
-              prev.forEach((p) => map.set(p.id, p));
-              dbProducts.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-              return Array.from(map.values());
+              filteredDb.forEach((p: Product) => {
+                if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+              });
+              prev.forEach((localP) => {
+                if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                  map.set(localP.id, localP);
+                  saveProductToSupabase(localP);
+                }
+              });
+              return sanitizeProductIds(Array.from(map.values()));
             });
           }
 
@@ -427,8 +365,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
             setCategories(INITIAL_CATEGORIES);
           }
 
-          const dbOrders = await fetchOrdersFromSupabase();
-          if (dbOrders && dbOrders.length > 0) setOrders(dbOrders);
+          const { data: { user: sbUser } } = await supabase.auth.getUser();
+          if (sbUser) {
+            const custProfile: CustomerProfile = {
+              id: sbUser.id,
+              email: sbUser.email || '',
+              phone: sbUser.phone || sbUser.user_metadata?.phone || '',
+              name: sbUser.user_metadata?.name || sbUser.email?.split('@')[0] || 'Valued Customer',
+              address: sbUser.user_metadata?.address || '',
+              area: sbUser.user_metadata?.area || 'Sector 4',
+              city: sbUser.user_metadata?.city || 'New Delhi',
+              pincode: sbUser.user_metadata?.pincode || '110016',
+            };
+            setCurrentCustomer(custProfile);
+            const userDbOrders = await fetchOrdersFromSupabase(sbUser.id);
+            if (userDbOrders) setOrders(userDbOrders);
+          }
 
           const dbBills = await fetchBillsFromSupabase();
           if (dbBills && dbBills.length > 0) setBills(dbBills);
@@ -437,7 +389,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
           if (dbExpenses && dbExpenses.length > 0) setExpenses(dbExpenses);
 
           const dbInvestments = await fetchInvestmentsFromSupabase();
-          if (dbInvestments && dbInvestments.length > 0) setInvestments(dbInvestments);
+          if (dbInvestments && dbInvestments.length > 0) {
+            setInvestments((prev) => {
+              const map = new Map<string, Investment>();
+              prev.forEach((i) => map.set(i.id, i));
+              dbInvestments.forEach((i) => map.set(i.id, { ...map.get(i.id), ...i }));
+              return Array.from(map.values());
+            });
+          }
         }
       } catch (e) {
         console.error('Error loading initial data:', e);
@@ -448,17 +407,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     initData();
 
-    // Real-time multi-device auto-sync polling for Products & Customer Orders (every 4 seconds)
+    // Real-time multi-device auto-sync polling for Products, Orders, and Investments (every 4 seconds)
     const handleSyncOnFocus = async () => {
       try {
-        const [resP, resO] = await Promise.all([fetch('/api/products'), fetch('/api/orders')]);
+        const [resP, resO, resI] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/orders', {
+            headers: isOwnerLoggedIn ? { 'x-owner-auth': 'true' } : {},
+          }),
+          isOwnerLoggedIn
+            ? fetch('/api/investments', {
+                headers: { 'x-owner-auth': 'true' },
+              })
+            : Promise.resolve(null),
+        ]);
         const dataP = await resP.json();
-        if (dataP.success && dataP.products && dataP.products.length > 0) {
+        if (dataP.success && Array.isArray(dataP.products)) {
+          const filteredSync = dataP.products.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
           setProducts((prev) => {
             const map = new Map<string, Product>();
-            prev.forEach((p) => map.set(p.id, p));
-            dataP.products.forEach((p: Product) => map.set(p.id, { ...map.get(p.id), ...p }));
-            return Array.from(map.values());
+            filteredSync.forEach((p: Product) => {
+              if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+            });
+            prev.forEach((localP) => {
+              if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                map.set(localP.id, localP);
+                saveProductToSupabase(localP);
+              }
+            });
+            return sanitizeProductIds(Array.from(map.values()));
           });
         }
         const dataO = await resO.json();
@@ -484,17 +461,58 @@ export function DataProvider({ children }: { children: ReactNode }) {
             });
           }
         }
-      } catch (e) {}
+        if (resI) {
+          const dataI = await resI.json();
+          if (dataI.success && Array.isArray(dataI.investments) && dataI.investments.length > 0) {
+            setInvestments((prev) => {
+              const map = new Map<string, Investment>();
+              prev.forEach((i) => map.set(i.id, i));
+              dataI.investments.forEach((i: Investment) => map.set(i.id, { ...map.get(i.id), ...i }));
+              return Array.from(map.values());
+            });
+          }
+        }
+      } catch {}
     };
 
     window.addEventListener('focus', handleSyncOnFocus);
     const syncInterval = setInterval(handleSyncOnFocus, 4000);
 
+    // 3. Supabase Realtime multi-device websocket channel subscription
+    const sbClient = isSupabaseConfigured && supabase ? supabase : null;
+    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+    if (sbClient) {
+      channel = sbClient
+        .channel('public:products_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => {
+          const dbProducts = await fetchProductsFromSupabase();
+          if (dbProducts !== null && Array.isArray(dbProducts)) {
+            const filteredDb = dbProducts.filter((p: Product) => p && p.id && !p.id.startsWith('p-samundi-'));
+            setProducts((prev) => {
+              const map = new Map<string, Product>();
+              filteredDb.forEach((p: Product) => {
+                if (!deletedProductIdsRef.current.has(p.id)) map.set(p.id, p);
+              });
+              prev.forEach((localP) => {
+                if (!deletedProductIdsRef.current.has(localP.id) && !map.has(localP.id)) {
+                  map.set(localP.id, localP);
+                }
+              });
+              return sanitizeProductIds(Array.from(map.values()));
+            });
+          }
+        })
+        .subscribe();
+    }
+
     return () => {
       window.removeEventListener('focus', handleSyncOnFocus);
       clearInterval(syncInterval);
+      if (channel && sbClient) {
+        sbClient.removeChannel(channel);
+      }
     };
-  }, []);
+  }, [isOwnerLoggedIn]);
 
   // Save to localStorage ONLY AFTER isLoaded IS TRUE
   useEffect(() => {
@@ -509,8 +527,46 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLoaded) return;
-    localStorage.setItem('orders_data', JSON.stringify(orders));
-  }, [orders, isLoaded]);
+    if (isOwnerLoggedIn) {
+      localStorage.setItem('owner_orders_data', JSON.stringify(orders));
+    } else if (currentCustomer?.id) {
+      localStorage.setItem(`orders_${currentCustomer.id}`, JSON.stringify(orders));
+    }
+  }, [orders, currentCustomer?.id, isOwnerLoggedIn, isLoaded]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const u = session?.user;
+      if (u) {
+        const custProfile: CustomerProfile = {
+          id: u.id,
+          email: u.email || '',
+          phone: u.phone || u.user_metadata?.phone || '',
+          name: u.user_metadata?.name || u.email?.split('@')[0] || 'Valued Customer',
+          address: u.user_metadata?.address || '',
+          area: u.user_metadata?.area || 'Sector 4',
+          city: u.user_metadata?.city || 'New Delhi',
+          pincode: u.user_metadata?.pincode || '110016',
+        };
+        setCurrentCustomer(custProfile);
+        const userOrders = await fetchOrdersFromSupabase(u.id);
+        if (userOrders) {
+          setOrders(userOrders);
+        } else {
+          const cached = localStorage.getItem(`orders_${u.id}`);
+          if (cached) {
+            try { setOrders(JSON.parse(cached)); } catch { setOrders([]); }
+          }
+        }
+      } else if (!isOwnerLoggedIn) {
+        setCurrentCustomer(null);
+        setOrders([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [isOwnerLoggedIn]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -546,8 +602,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   }, [currentCustomer, isLoaded]);
 
-  // Clear demo data completely
+  // Clear demo data completely across client, server, and Supabase DB
   const clearAllDemoData = () => {
+    products.forEach((p) => deletedProductIdsRef.current.add(p.id));
     setProducts([]);
     setOrders([]);
     setInvestments([]);
@@ -560,6 +617,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('expenses_data');
     localStorage.removeItem('bills_data');
     localStorage.removeItem('cart_data');
+
+    // Purge from Supabase DB
+    clearAllProductsFromSupabase();
+
+    // Purge from Server Multi-Device Store
+    try {
+      fetch('/api/products?clear_all=true', {
+        method: 'DELETE',
+        headers: {
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
+      }).catch(() => {});
+    } catch {}
   };
 
   // Customer Auth Actions
@@ -577,7 +648,42 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCurrentCustomer(cust);
   };
 
-  const registerCustomer = (profileData: Omit<CustomerProfile, 'id'>): CustomerProfile => {
+  const registerCustomer = async (profileData: Omit<CustomerProfile, 'id'>): Promise<CustomerProfile> => {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: profileData.email,
+          password: profileData.password || 'Password@123',
+          options: {
+            data: {
+              name: profileData.name,
+              phone: profileData.phone,
+              address: profileData.address,
+              area: profileData.area,
+              city: profileData.city,
+              pincode: profileData.pincode,
+            },
+          },
+        });
+
+        if (data.user) {
+          const cust: CustomerProfile = {
+            ...profileData,
+            id: data.user.id,
+            created_at: new Date().toISOString(),
+          };
+          setRegisteredCustomers((prev) => [cust, ...prev]);
+          setCurrentCustomer(cust);
+          return cust;
+        }
+        if (error) {
+          console.warn('[registerCustomer Supabase error]', error.message);
+        }
+      } catch (err) {
+        console.warn('[registerCustomer Supabase Notice]', err);
+      }
+    }
+
     const cust: CustomerProfile = {
       ...profileData,
       id: `cust-${Date.now()}`,
@@ -588,13 +694,58 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return cust;
   };
 
-  const authenticateCustomer = (
+  const authenticateCustomer = async (
     identifier: string,
     pass: string
-  ): { success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile } => {
-    const cleanId = identifier.trim().toLowerCase().replace(/\s+/g, '');
-    const cleanPhoneDigits = identifier.replace(/\D/g, '');
+  ): Promise<{ success: boolean; reason?: 'NOT_REGISTERED' | 'INVALID_PASSWORD'; customer?: CustomerProfile }> => {
+    const cleanId = identifier.trim().toLowerCase();
 
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let emailToTry = cleanId;
+        if (!cleanId.includes('@')) {
+          const regMatch = registeredCustomers.find(
+            (c) => c.phone.replace(/\D/g, '').endsWith(cleanId.replace(/\D/g, ''))
+          );
+          if (regMatch) emailToTry = regMatch.email;
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailToTry,
+          password: pass,
+        });
+
+        if (error) {
+          if (error.message.toLowerCase().includes('invalid login credentials')) {
+            return { success: false, reason: 'INVALID_PASSWORD' };
+          }
+          return { success: false, reason: 'NOT_REGISTERED' };
+        }
+
+        if (data.user) {
+          const u = data.user;
+          const cust: CustomerProfile = {
+            id: u.id,
+            email: u.email || '',
+            phone: u.phone || u.user_metadata?.phone || '',
+            name: u.user_metadata?.name || u.email?.split('@')[0] || 'Valued Customer',
+            address: u.user_metadata?.address || '',
+            area: u.user_metadata?.area || 'Sector 4',
+            city: u.user_metadata?.city || 'New Delhi',
+            pincode: u.user_metadata?.pincode || '110016',
+          };
+          setCurrentCustomer(cust);
+          const userOrders = await fetchOrdersFromSupabase(u.id);
+          if (userOrders) setOrders(userOrders);
+
+          return { success: true, customer: cust };
+        }
+      } catch (err) {
+        console.warn('[authenticateCustomer Supabase Notice]', err);
+      }
+    }
+
+    const cleanPhoneDigits = identifier.replace(/\D/g, '');
     const found = registeredCustomers.find((c) => {
       const cEmail = c.email.trim().toLowerCase();
       const cPhoneDigits = c.phone.replace(/\D/g, '');
@@ -615,8 +766,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return { success: true, customer: found };
   };
 
-  const logoutCustomer = () => {
+  const logoutCustomer = async () => {
+    if (isSupabaseConfigured && supabase) {
+      try { await supabase.auth.signOut(); } catch {}
+    }
     setCurrentCustomer(null);
+    localStorage.removeItem('customer_user');
+    if (!isOwnerLoggedIn) {
+      setOrders([]);
+    }
   };
 
   const updateCustomerProfile = (fields: Partial<CustomerProfile>) => {
@@ -626,14 +784,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   // Owner Auth Actions
-  const loginOwner = () => {
+  const loginOwner = async () => {
     setIsOwnerLoggedIn(true);
     localStorage.setItem('owner_auth', 'true');
+    if (typeof document !== 'undefined') {
+      document.cookie = "owner_auth=true; path=/; max-age=86400; SameSite=Lax";
+    }
+    const allOrders = await fetchOrdersFromSupabase();
+    if (allOrders && allOrders.length > 0) {
+      setOrders(allOrders);
+    }
   };
 
   const logoutOwner = () => {
     setIsOwnerLoggedIn(false);
     localStorage.removeItem('owner_auth');
+    if (typeof document !== 'undefined') {
+      document.cookie = "owner_auth=; path=/; max-age=0; SameSite=Lax";
+    }
   };
 
   const updateShopSettings = (settings: Partial<ShopSettings>) => {
@@ -642,10 +810,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   // Product Actions
-  const addProduct = (productData: Omit<Product, 'id'>) => {
+  const addProduct = (productData: Omit<Product, 'id'> & { id?: string }) => {
+    const uniqueId = productData.id || `p-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    deletedProductIdsRef.current.delete(uniqueId);
     const newProduct: Product = {
       ...productData,
-      id: `p-${Date.now()}`,
+      id: uniqueId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -656,10 +826,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     try {
       fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
         body: JSON.stringify(newProduct),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
 
     // 1. Stock Movement record
     if (newProduct.stock_quantity > 0) {
@@ -710,20 +884,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
       try {
         fetch('/api/products', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-owner-auth': 'true',
+          },
+          credentials: 'include',
           body: JSON.stringify(targetUpdated),
         }).catch(() => {});
-      } catch (e) {}
+      } catch {}
     }
   };
 
   const deleteProduct = (id: string) => {
+    deletedProductIdsRef.current.add(id);
     setProducts((prev) => prev.filter((p) => p.id !== id));
     deleteProductFromSupabase(id);
 
     try {
-      fetch(`/api/products?id=${id}`, { method: 'DELETE' }).catch(() => {});
-    } catch (e) {}
+      fetch(`/api/products?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
+      }).catch(() => {});
+    } catch {}
   };
 
   const restockProduct = (id: string, qty: number, note?: string) => {
@@ -893,6 +1078,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const newOrder: Order = {
       ...orderData,
       id: orderId,
+      user_id: currentCustomer?.id,
       order_number: orderNumber,
       customer_id: currentCustomer?.id,
       customer_mobile: orderData.customer_mobile || orderData.customer_phone,
@@ -953,7 +1139,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'BILL', data: newBill }),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
 
     // Stock deduction
     newOrder.items.forEach((item) => {
@@ -993,14 +1179,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    // Push status update to Multi-Device Cloud API
+    // Push status update to Multi-Device Cloud API & Supabase
     try {
       fetch('/api/orders', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
         body: JSON.stringify({ orderId, status: newStatus }),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
+
+    if (isSupabaseConfigured && supabase) {
+      supabase
+        .from('orders')
+        .update({ order_status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', orderId)
+        .then();
+    }
 
     setOrders((prev) =>
       prev.map((ord) => {
@@ -1048,6 +1246,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
     setInvestments((prev) => [newInv, ...prev]);
     saveInvestmentToSupabase(newInv);
+
+    try {
+      fetch('/api/investments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
+        body: JSON.stringify(newInv),
+      }).catch(() => {});
+    } catch {}
   };
 
   const addExpense = (exp: Omit<Expense, 'id'>) => {
@@ -1093,7 +1303,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'BILL', data: newBill }),
       }).catch(() => {});
-    } catch (e) {}
+    } catch {}
 
     newBill.items.forEach((item) => {
       setProducts((prev) =>

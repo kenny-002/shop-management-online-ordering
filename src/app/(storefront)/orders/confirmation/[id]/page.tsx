@@ -8,18 +8,29 @@ import { useData } from '@/context/data-context';
 
 export default function OrderConfirmationPage() {
   const { id } = useParams();
-  const { orders } = useData();
+  const { orders, currentCustomer, isOwnerLoggedIn } = useData();
 
   const order = orders.find((o) => o.id === id);
 
-  if (!order) {
+  const isOwner = isOwnerLoggedIn;
+  const isOwnerOfOrder = currentCustomer && order && (order.user_id === currentCustomer.id || order.customer_id === currentCustomer.id);
+
+  if (!order || (!isOwner && !isOwnerOfOrder)) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Order Not Found</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">We couldn&apos;t locate this order ID.</p>
-        <Link href="/products" className="inline-block bg-emerald-600 text-white dark:text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs">
-          Return to Storefront
-        </Link>
+        <div className="w-16 h-16 bg-red-500/20 text-red-500 dark:text-red-400 rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+          🔒
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Access Denied / Order Not Found</h2>
+        <p className="text-xs text-slate-600 dark:text-slate-400">You do not have permission to view this order&apos;s details.</p>
+        <div className="pt-2 flex justify-center gap-3">
+          <Link href="/my-orders" className="inline-block bg-emerald-600 hover:bg-emerald-500 text-white dark:text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs">
+            View My Orders
+          </Link>
+          <Link href="/products" className="inline-block bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs">
+            Return to Store
+          </Link>
+        </div>
       </div>
     );
   }

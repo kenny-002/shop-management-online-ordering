@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PiggyBank, Plus, Calendar, DollarSign, Tag } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function OwnerInvestmentsPage() {

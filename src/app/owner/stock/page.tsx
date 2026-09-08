@@ -11,7 +11,7 @@ export default function OwnerStockPage() {
   const [customQty, setCustomQty] = useState<number>(10);
 
   const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+    (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (p.brand || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleRestockSubmit = (e: React.FormEvent) => {

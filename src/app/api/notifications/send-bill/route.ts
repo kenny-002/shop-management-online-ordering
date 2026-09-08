@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +11,7 @@ export async function POST(req: NextRequest) {
       totalAmount,
       invoiceUrl,
       deliveryMethod = 'WHATSAPP',
-      shopName = 'FreshMart Local Supermarket',
+      shopName = 'Sri Samundi Store & Tea Stall',
     } = body;
 
     // Validate phone number

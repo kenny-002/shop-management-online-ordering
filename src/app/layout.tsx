@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Sri Samundi Store & Tea Stall — Your Local Shop, Now Online',
   description:
-    'Order fresh groceries, tea, daily essentials, organic produce & household supplies online with fast local home delivery and instant UPI payments.',
+    'Order fresh tea, snacks, daily groceries, organic produce & household essentials online from Sri Samundi Store & Tea Stall with fast local home delivery and instant UPI payment.',
 };
 
 const themeScript = `

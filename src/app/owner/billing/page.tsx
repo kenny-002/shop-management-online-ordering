@@ -52,7 +52,7 @@ export default function OwnerBillingPage() {
   } | null>(null);
 
   const filteredProducts = products.filter(
-    (p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+    (p) => (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (p.brand || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const addToBillCart = (prod: Product) => {
