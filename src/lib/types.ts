@@ -74,7 +74,9 @@ export type OrderStatus =
   | 'Delivered'
   | 'Cancelled';
 
-export type PaymentStatus = 'Pending' | 'Paid' | 'Failed' | 'Refunded';
+export type PaymentStatus = 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'Cancelled';
+
+export type PaymentProvider = 'MANUAL_QR' | 'COD' | 'RAZORPAY' | 'CASHFREE' | 'PHONEPE' | 'PAYU';
 
 export type DeliveryStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED';
 
@@ -106,6 +108,10 @@ export interface Order {
   total_amount: number;
   payment_method: 'UPI' | 'Cash' | 'Card' | 'Other';
   payment_status: PaymentStatus;
+  payment_provider?: PaymentProvider;
+  payment_id?: string;
+  payment_order_id?: string;
+  paid_at?: string;
   payment_ref?: string;
   payment_proof_url?: string;
   delivery_type: 'Home Delivery' | 'Shop Pickup';

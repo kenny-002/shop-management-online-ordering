@@ -318,7 +318,18 @@ export default function OwnerDashboardPage() {
                     <p className="font-semibold text-slate-900 dark:text-white">{ord.customer_name}</p>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400">{ord.customer_phone}</p>
                   </td>
-                  <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">₹{ord.total_amount}</td>
+                  <td className="py-3.5 px-4">
+                    <p className="font-bold text-slate-900 dark:text-white">₹{ord.total_amount}</p>
+                    <span
+                      className={`inline-block mt-0.5 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+                        ord.payment_status === 'Paid'
+                          ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400'
+                          : 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400'
+                      }`}
+                    >
+                      {ord.payment_status === 'Paid' ? '✓ Paid' : '⏳ Pending'}
+                    </span>
+                  </td>
                   <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300">{ord.delivery_type}</td>
                   <td className="py-3.5 px-4">
                     <span

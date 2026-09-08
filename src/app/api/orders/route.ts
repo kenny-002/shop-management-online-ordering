@@ -35,6 +35,11 @@ function sanitizeOrderForDb(order: Order, userId: string) {
     total_amount: Number(header.total_amount) || 0,
     payment_method: header.payment_method || 'Cash',
     payment_status: header.payment_status || 'Pending',
+    payment_provider: header.payment_provider || (header.payment_method === 'Cash' ? 'COD' : 'MANUAL_QR'),
+    payment_id: header.payment_id || null,
+    payment_order_id: header.payment_order_id || null,
+    paid_at: header.paid_at || null,
+    payment_ref: header.payment_ref || '',
     order_status: header.order_status || 'Pending',
     notes: header.notes || '',
     invoice_number: header.invoice_number || '',
@@ -167,9 +172,18 @@ export async function POST(req: NextRequest) {
       }
 
       const userId = authenticatedUser.id;
+
+      // Server Security Enforced: Clients cannot self-declare payment_status = 'Paid' without server verification
+      let verifiedPaymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'Cancelled' = 'Pending';
+      if (data.payment_status === 'Paid' && data.payment_id && data.paid_at) {
+        verifiedPaymentStatus = 'Paid';
+      }
+
       const orderData: Order = {
         ...data,
         user_id: userId,
+        payment_status: verifiedPaymentStatus,
+        payment_provider: data.payment_provider || (data.payment_method === 'Cash' ? 'COD' : 'MANUAL_QR'),
       };
 
       const existingIdx = globalOrderStore.findIndex((o) => o.id === orderData.id);
@@ -251,22 +265,39 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { orderId, status } = body;
+    const { orderId, status, payment_status } = body;
 
-    if (!orderId || !status) {
-      return NextResponse.json({ success: false, error: 'orderId and status required' }, { status: 400 });
+    if (!orderId || (!status && !payment_status)) {
+      return NextResponse.json({ success: false, error: 'orderId and status or payment_status required' }, { status: 400 });
     }
 
     const targetOrder = globalOrderStore.find((o) => o.id === orderId);
-    if (targetOrder) {
-      targetOrder.order_status = status;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+
+    if (status) {
+      if (targetOrder) targetOrder.order_status = status;
+      updates.order_status = status;
+    }
+
+    if (payment_status) {
+      if (targetOrder) {
+        targetOrder.payment_status = payment_status;
+        if (payment_status === 'Paid') {
+          targetOrder.paid_at = new Date().toISOString();
+        }
+      }
+      updates.payment_status = payment_status;
+      if (payment_status === 'Paid') {
+        updates.paid_at = new Date().toISOString();
+      }
     }
 
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('orders').update({ order_status: status, updated_at: new Date().toISOString() }).eq('id', orderId);
+      await supabase.from('orders').update(updates).eq('id', orderId);
     }
 
-    return NextResponse.json({ success: true, orderId, status });
+    return NextResponse.json({ success: true, orderId, status, payment_status });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to update order status';
     return NextResponse.json({ success: false, error: message }, { status: 500 });

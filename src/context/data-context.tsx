@@ -139,6 +139,7 @@ interface DataContextType {
 
   createOrder: (order: Omit<Order, 'id' | 'order_number' | 'created_at'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  updatePaymentStatus: (orderId: string, status: 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'Cancelled') => void;
 
   addInvestment: (investment: Omit<Investment, 'id'>) => void;
   addExpense: (expense: Omit<Expense, 'id'>) => void;
@@ -1243,6 +1244,45 @@ function sanitizeProductIds(prods: Product[]): Product[] {
     );
   };
 
+  const updatePaymentStatus = (orderId: string, newPaymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded' | 'Cancelled') => {
+    try {
+      fetch('/api/orders', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-auth': 'true',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ orderId, payment_status: newPaymentStatus }),
+      }).catch(() => {});
+    } catch {}
+
+    const nowIso = new Date().toISOString();
+    if (isSupabaseConfigured && supabase) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updates: Record<string, any> = { payment_status: newPaymentStatus, updated_at: nowIso };
+      if (newPaymentStatus === 'Paid') updates.paid_at = nowIso;
+      supabase
+        .from('orders')
+        .update(updates)
+        .eq('id', orderId)
+        .then();
+    }
+
+    setOrders((prev) =>
+      prev.map((ord) => {
+        if (ord.id === orderId) {
+          return {
+            ...ord,
+            payment_status: newPaymentStatus,
+            paid_at: newPaymentStatus === 'Paid' ? (ord.paid_at || nowIso) : ord.paid_at,
+          };
+        }
+        return ord;
+      })
+    );
+  };
+
   // Financial & POS Actions
   const addInvestment = (inv: Omit<Investment, 'id'>) => {
     const newInv: Investment = {
@@ -1418,6 +1458,7 @@ function sanitizeProductIds(prods: Product[]): Product[] {
         clearCart,
         createOrder,
         updateOrderStatus,
+        updatePaymentStatus,
         dispatchBillNotification,
         addInvestment,
         addExpense,

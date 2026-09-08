@@ -6,7 +6,7 @@ import { useData } from '@/context/data-context';
 import { OrderStatus } from '@/lib/types';
 
 export default function OwnerOrdersPage() {
-  const { orders, updateOrderStatus } = useData();
+  const { orders, updateOrderStatus, updatePaymentStatus } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
@@ -25,7 +25,8 @@ export default function OwnerOrdersPage() {
       !searchQuery.trim() ||
       o.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       o.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.customer_phone.includes(searchQuery.trim());
+      o.customer_phone.includes(searchQuery.trim()) ||
+      (o.payment_ref && o.payment_ref.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchStatus = statusFilter === 'ALL' || o.order_status === statusFilter;
     return matchQuery && matchStatus;
   });
@@ -36,13 +37,15 @@ export default function OwnerOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs dark:shadow-xl">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Order Management Command Center</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review incoming online customer orders, update delivery progress, and handle cancellations.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Review incoming online customer orders, verify GPay/UPI payment status, update delivery progress, and handle cancellations.
+          </p>
         </div>
 
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-80">
           <input
             type="text"
-            placeholder="Search by Order #, Customer Name, or Phone..."
+            placeholder="Search by Order #, Name, Phone, or UTR..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs rounded-xl pl-9 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 focus:outline-hidden"
@@ -86,10 +89,10 @@ export default function OwnerOrdersPage() {
                 <th className="py-3.5 px-4">Order ID & Date</th>
                 <th className="py-3.5 px-4">Customer Details</th>
                 <th className="py-3.5 px-4">Items Ordered</th>
-                <th className="py-3.5 px-4">Amount & Payment</th>
-                <th className="py-3.5 px-4">Type</th>
-                <th className="py-3.5 px-4">Order Status</th>
-                <th className="py-3.5 px-4 text-right">Update Progress</th>
+                <th className="py-3.5 px-4">Amount & Payment Verification</th>
+                <th className="py-3.5 px-4">Delivery Type</th>
+                <th className="py-3.5 px-4">Order Progress</th>
+                <th className="py-3.5 px-4 text-right">Update Order Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -123,7 +126,39 @@ export default function OwnerOrdersPage() {
                     </td>
                     <td className="py-3.5 px-4">
                       <p className="font-black text-slate-900 dark:text-white text-sm">₹{ord.total_amount}</p>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{ord.payment_method} ({ord.payment_status})</span>
+                      <div className="mt-1 space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                              ord.payment_status === 'Paid'
+                                ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30'
+                                : ord.payment_status === 'Failed'
+                                ? 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400 border border-red-300 dark:border-red-500/30'
+                                : 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30'
+                            }`}
+                          >
+                            {ord.payment_status === 'Paid' ? '✓ PAID' : ord.payment_status === 'Failed' ? '✕ FAILED' : '⏳ UNPAID / PENDING'}
+                          </span>
+                          {ord.payment_status !== 'Paid' && (
+                            <button
+                              onClick={() => updatePaymentStatus(ord.id, 'Paid')}
+                              title="Verify credit on GPay app and mark as paid"
+                              className="text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2 py-0.5 rounded-md transition-colors shadow-xs"
+                            >
+                              Mark Paid
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                          Method: {ord.payment_method === 'UPI' ? 'UPI QR' : ord.payment_method}
+                          {ord.payment_provider ? ` (${ord.payment_provider})` : ''}
+                        </p>
+                        {ord.payment_ref && (
+                          <p className="text-[10px] font-mono text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded w-max">
+                            UTR: {ord.payment_ref}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-semibold">{ord.delivery_type}</td>
                     <td className="py-3.5 px-4">
