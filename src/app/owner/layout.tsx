@@ -20,11 +20,10 @@ import {
   X,
   Store,
   AlertTriangle,
-  ChevronRight,
-  ShieldAlert,
   Loader2,
 } from 'lucide-react';
 import { useData } from '@/context/data-context';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -47,7 +46,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
   // Prevent transient flashing or kickouts while initial storage is loading
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-emerald-400 font-mono text-xs gap-2">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-mono text-xs gap-2">
         <Loader2 className="w-5 h-5 animate-spin" /> Verifying Owner Portal Session...
       </div>
     );
@@ -75,26 +74,26 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+    <div className="flex h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-200">
       {/* SIDEBAR NAVIGATION */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-300 transform ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Branding Header */}
-          <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800">
+          <div className="h-20 px-6 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
             <Link href="/owner/dashboard" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-slate-950 font-black shadow-md">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white font-black shadow-md">
                 <Store className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="font-extrabold text-sm text-white truncate">{shop.name}</h2>
-                <span className="text-[10px] text-emerald-400 font-semibold block">Owner Dashboard</span>
+                <h2 className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{shop.name}</h2>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">Owner Dashboard</span>
               </div>
             </Link>
-            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400 hover:text-white">
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -112,12 +111,12 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                      ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 font-bold'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`} />
                     <span className="truncate">{item.name}</span>
                   </div>
                   {item.badge !== undefined && item.badge > 0 && (
@@ -137,30 +136,30 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
           </nav>
 
           {/* Sidebar Footer User Info & Logout */}
-          <div className="p-4 border-t border-slate-800 bg-slate-900/50 space-y-3">
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-emerald-400">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-slate-800 border border-emerald-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs text-emerald-700 dark:text-emerald-400">
                 OW
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-white truncate">Shop Administrator</p>
-                <p className="text-[10px] text-slate-400 truncate">{shop.email}</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">Shop Administrator</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{shop.email}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={handleLogout}
-                className="flex-1 bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 border border-slate-200 dark:border-slate-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" /> Logout
               </button>
               <Link
                 href="/"
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 p-2 rounded-xl text-xs font-semibold"
+                className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 p-2 rounded-xl text-xs font-semibold"
                 title="View Storefront"
               >
-                <Store className="w-4 h-4 text-emerald-400" />
+                <Store className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </Link>
             </div>
           </div>
@@ -170,25 +169,30 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="h-20 bg-slate-900 border-b border-slate-800 px-4 sm:px-8 flex items-center justify-between shrink-0">
+        <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 flex items-center justify-between shrink-0 transition-colors duration-200">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 text-slate-400 hover:text-white bg-slate-800 rounded-xl"
+              className="lg:hidden p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg font-bold text-white hidden sm:block">
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white hidden sm:block">
               {navItems.find((n) => n.href === pathname)?.name || 'Owner Dashboard'}
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <ThemeToggle />
+
             {/* Notification Drawer Button */}
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative bg-slate-800 hover:bg-slate-700 p-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white transition-colors"
+                className="relative bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+                title="Notifications"
+                aria-label="View notifications"
               >
                 <Bell className="w-4 h-4" />
                 {totalNotifications > 0 && (
@@ -200,10 +204,10 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
 
               {/* Notifications Modal Popup */}
               {notificationsOpen && (
-                <div className="absolute right-0 mt-3 w-80 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 className="font-bold text-xs text-white">Notifications ({totalNotifications})</h4>
-                    <button onClick={() => setNotificationsOpen(false)} className="text-[10px] text-slate-400 hover:text-white">
+                <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                    <h4 className="font-bold text-xs text-slate-900 dark:text-white">Notifications ({totalNotifications})</h4>
+                    <button onClick={() => setNotificationsOpen(false)} className="text-[10px] text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
                       Close
                     </button>
                   </div>
@@ -216,11 +220,11 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
                         onClick={() => setNotificationsOpen(false)}
                         className="block bg-amber-500/10 border border-amber-500/30 p-2.5 rounded-xl text-xs space-y-0.5 hover:bg-amber-500/20"
                       >
-                        <p className="font-bold text-amber-400 flex items-center gap-1">
+                        <p className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                           <AlertTriangle className="w-3.5 h-3.5" /> Low Stock Alert
                         </p>
-                        <p className="text-slate-300 font-semibold">{p.name}</p>
-                        <p className="text-[10px] text-slate-400">Only {p.stock_quantity} items remaining!</p>
+                        <p className="text-slate-800 dark:text-slate-300 font-semibold">{p.name}</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Only {p.stock_quantity} items remaining!</p>
                       </Link>
                     ))}
 
@@ -230,13 +234,13 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
                         onClick={() => setNotificationsOpen(false)}
                         className="block bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-xl text-xs space-y-0.5 hover:bg-emerald-500/20"
                       >
-                        <p className="font-bold text-emerald-400">🛍️ {pendingOrdersCount} Pending Customer Orders</p>
-                        <p className="text-[10px] text-slate-400">Click to view and update order status</p>
+                        <p className="font-bold text-emerald-700 dark:text-emerald-400">🛍️ {pendingOrdersCount} Pending Customer Orders</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">Click to view and update order status</p>
                       </Link>
                     )}
 
                     {totalNotifications === 0 && (
-                      <p className="text-xs text-slate-500 text-center py-4">No pending alerts right now.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-500 text-center py-4">No pending alerts right now.</p>
                     )}
                   </div>
                 </div>
@@ -245,7 +249,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
 
             <Link
               href="/"
-              className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+              className="bg-emerald-100 dark:bg-emerald-600/20 hover:bg-emerald-200 dark:hover:bg-emerald-600/30 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
             >
               <Store className="w-4 h-4" /> Storefront
             </Link>

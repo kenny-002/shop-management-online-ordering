@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Phone, MapPin, Package, LogOut, Save, Check } from 'lucide-react';
+import { User, Package, LogOut, Save, Check } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function CustomerAccountPage() {
@@ -36,9 +36,9 @@ export default function CustomerAccountPage() {
   if (!currentCustomer) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-white">Not Logged In</h2>
-        <p className="text-xs text-slate-400">Please log in to view your customer profile and saved delivery addresses.</p>
-        <Link href="/login" className="inline-block bg-emerald-600 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Not Logged In</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Please log in to view your customer profile and saved delivery addresses.</p>
+        <Link href="/login" className="inline-block bg-emerald-600 text-white dark:text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs">
           Go to Customer Login
         </Link>
       </div>
@@ -64,20 +64,20 @@ export default function CustomerAccountPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header Profile Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs dark:shadow-xl">
         <div className="flex items-center gap-4 text-center sm:text-left">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xl">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center font-black text-xl">
             {currentCustomer.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-white">{currentCustomer.name}</h1>
-            <p className="text-xs text-slate-400">{currentCustomer.email} • {currentCustomer.phone}</p>
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{currentCustomer.name}</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{currentCustomer.email} • {currentCustomer.phone}</p>
           </div>
         </div>
 
         <button
           onClick={handleLogout}
-          className="bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+          className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
         >
           <LogOut className="w-4 h-4" /> Customer Logout
         </button>
@@ -86,13 +86,13 @@ export default function CustomerAccountPage() {
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Edit Profile & Address Form */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="font-extrabold text-base text-white flex items-center gap-2">
-              <User className="w-4 h-4 text-emerald-400" /> Customer Profile & Delivery Address
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs dark:shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Customer Profile & Delivery Address
             </h3>
             {savedNotice && (
-              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                 <Check className="w-3.5 h-3.5" /> Saved!
               </span>
             )}
@@ -101,69 +101,69 @@ export default function CustomerAccountPage() {
           <form onSubmit={handleSave} className="space-y-4 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Full Name</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">Full Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3.5 py-2.5"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Mobile Phone</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">Mobile Phone</label>
                 <input
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3.5 py-2.5"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-semibold text-slate-300 block mb-1">Email Address</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">Email Address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3.5 py-2.5"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-semibold text-slate-300 block mb-1">Default Street Address</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">Default Street Address</label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3.5 py-2.5"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Area / Locality</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">Area / Locality</label>
                 <input
                   type="text"
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3.5 py-2.5"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Pincode</label>
+                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">Pincode</label>
                 <input
                   type="text"
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3.5 py-2.5"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white dark:text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-xs"
             >
               <Save className="w-4 h-4" /> Save Profile Details
             </button>
@@ -171,24 +171,24 @@ export default function CustomerAccountPage() {
         </div>
 
         {/* Right Column: Recent Orders Overview */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="font-extrabold text-base text-white flex items-center gap-2">
-              <Package className="w-4 h-4 text-emerald-400" /> My Orders ({customerOrders.length})
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs dark:shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <Package className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> My Orders ({customerOrders.length})
             </h3>
-            <Link href="/my-orders" className="text-xs text-emerald-400 font-semibold hover:underline">
+            <Link href="/my-orders" className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">
               View All
             </Link>
           </div>
 
           <div className="space-y-3">
             {customerOrders.slice(0, 3).map((ord) => (
-              <div key={ord.id} className="bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs space-y-1">
-                <div className="flex justify-between font-bold text-white">
-                  <span className="text-emerald-400 font-mono">{ord.order_number}</span>
+              <div key={ord.id} className="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+                <div className="flex justify-between font-bold text-slate-900 dark:text-white">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-mono">{ord.order_number}</span>
                   <span>₹{ord.total_amount}</span>
                 </div>
-                <p className="text-[10px] text-slate-400">{ord.items.length} items • Status: {ord.order_status}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">{ord.items.length} items • Status: {ord.order_status}</p>
               </div>
             ))}
           </div>

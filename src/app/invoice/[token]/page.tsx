@@ -4,7 +4,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import html2canvas from 'html2canvas';
-import { Printer, Download, Store, CheckCircle2, ShieldCheck, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { Printer, Store, CheckCircle2, ShieldCheck, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { useData } from '@/context/data-context';
 
 export default function DigitalInvoicePage() {
@@ -47,16 +47,16 @@ export default function DigitalInvoicePage() {
 
   if (!invoiceData) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full text-center space-y-4 shadow-2xl">
-          <div className="w-12 h-12 rounded-2xl bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center mx-auto">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full text-center space-y-4 shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 flex items-center justify-center mx-auto">
             <ShieldCheck className="w-6 h-6" />
           </div>
-          <h1 className="text-xl font-extrabold text-white">Invoice Not Found</h1>
-          <p className="text-xs text-slate-400">
+          <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Invoice Not Found</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             The requested invoice link is invalid or has expired. Please verify your invoice link or contact {shop.name}.
           </p>
-          <Link href="/" className="inline-flex items-center gap-1.5 bg-emerald-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs">
+          <Link href="/" className="inline-flex items-center gap-1.5 bg-emerald-600 text-white dark:text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs">
             <ArrowLeft className="w-4 h-4" /> Go to Storefront
           </Link>
         </div>
@@ -78,24 +78,24 @@ export default function DigitalInvoicePage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Navigation & Controls Bar (Hidden on Print) */}
-        <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-4 rounded-2xl print:hidden shadow-lg flex-wrap gap-2">
-          <Link href="/" className="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5">
+        <div className="flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl print:hidden shadow-lg flex-wrap gap-2">
+          <Link href="/" className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
             <ArrowLeft className="w-4 h-4" /> Back to Store
           </Link>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleDownloadImage}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-xs"
             >
               <ImageIcon className="w-4 h-4" /> Save PNG Image
             </button>
             <button
               onClick={handlePrint}
-              className="bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white dark:text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-xs"
             >
               <Printer className="w-4 h-4" /> Print / PDF
             </button>
@@ -103,7 +103,7 @@ export default function DigitalInvoicePage() {
         </div>
 
         {/* SECURE DIGITAL INVOICE CARD */}
-        <div id="digital-invoice-card" className="bg-white text-slate-900 rounded-3xl p-8 sm:p-10 space-y-6 shadow-2xl font-sans print:shadow-none print:p-0">
+        <div id="digital-invoice-card" className="bg-white text-slate-900 rounded-3xl p-8 sm:p-10 space-y-6 shadow-2xl font-sans print:shadow-none print:p-0 border border-slate-200">
           {/* Shop Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-6 gap-4">
             <div className="flex items-center gap-3">

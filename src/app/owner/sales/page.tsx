@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { TrendingUp, Calendar, Filter, ArrowUpRight } from 'lucide-react';
+import React from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart as RePieChart, Pie, Cell } from 'recharts';
 import { useData } from '@/context/data-context';
+import { useTheme } from '@/context/theme-context';
 
 export default function OwnerSalesPage() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const { orders, bills, totalSales, categories, products } = useData();
 
   const now = new Date();
@@ -114,61 +118,68 @@ export default function OwnerSalesPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs dark:shadow-xl">
         <div>
-          <h1 className="text-2xl font-extrabold text-white">Sales Analytics Dashboard</h1>
-          <p className="text-xs text-slate-400 mt-1">Track daily sales volume, top categories, and revenue trends.</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Sales Analytics Dashboard</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Track daily sales volume, top categories, and revenue trends.</p>
         </div>
       </div>
 
       {/* Breakdown Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium">Today&apos;s Sales</span>
-          <p className="text-2xl font-black text-white">₹{Math.round(todaySales).toLocaleString()}</p>
-          <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-0.5">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-1 shadow-xs">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Today&apos;s Sales</span>
+          <p className="text-2xl font-black text-slate-900 dark:text-white">₹{Math.round(todaySales).toLocaleString()}</p>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
             <ArrowUpRight className="w-3 h-3" /> {pctChange >= 0 ? `+${pctChange}%` : `${pctChange}%`} from yesterday
           </span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium">Week&apos;s Sales</span>
-          <p className="text-2xl font-black text-white">₹{Math.round(weekSales).toLocaleString()}</p>
-          <span className="text-[10px] text-emerald-400 font-semibold">Weekly aggregate</span>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-1 shadow-xs">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Week&apos;s Sales</span>
+          <p className="text-2xl font-black text-slate-900 dark:text-white">₹{Math.round(weekSales).toLocaleString()}</p>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Weekly aggregate</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium">Month&apos;s Sales</span>
-          <p className="text-2xl font-black text-white">₹{Math.round(monthSales).toLocaleString()}</p>
-          <span className="text-[10px] text-emerald-400 font-semibold">Monthly aggregate</span>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-1 shadow-xs">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Month&apos;s Sales</span>
+          <p className="text-2xl font-black text-slate-900 dark:text-white">₹{Math.round(monthSales).toLocaleString()}</p>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Monthly aggregate</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-1">
-          <span className="text-[11px] text-slate-400 font-medium">Total Lifetime Revenue</span>
-          <p className="text-2xl font-black text-emerald-400">₹{totalSales.toLocaleString()}</p>
-          <span className="text-[10px] text-slate-400">Online + POS Counter</span>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-1 shadow-xs">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Total Lifetime Revenue</span>
+          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">₹{totalSales.toLocaleString()}</p>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400">Online + POS Counter</span>
         </div>
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-          <h3 className="font-extrabold text-base text-white">Weekly Sales Volume (₹)</h3>
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs dark:shadow-xl">
+          <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Weekly Sales Volume (₹)</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#1e293b' : '#e2e8f0'} />
+                <XAxis dataKey="name" stroke={isDark ? '#64748b' : '#475569'} fontSize={11} />
+                <YAxis stroke={isDark ? '#64748b' : '#475569'} fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                    borderColor: isDark ? '#334155' : '#cbd5e1',
+                    borderRadius: '12px',
+                    color: isDark ? '#f8fafc' : '#0f172a',
+                  }}
+                />
                 <Bar dataKey="Sales" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-          <h3 className="font-extrabold text-base text-white">Category Sales Distribution</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs dark:shadow-xl">
+          <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Category Sales Distribution</h3>
           <div className="h-64 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <RePieChart>
@@ -177,7 +188,14 @@ export default function OwnerSalesPage() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                    borderColor: isDark ? '#334155' : '#cbd5e1',
+                    borderRadius: '12px',
+                    color: isDark ? '#f8fafc' : '#0f172a',
+                  }}
+                />
               </RePieChart>
             </ResponsiveContainer>
           </div>

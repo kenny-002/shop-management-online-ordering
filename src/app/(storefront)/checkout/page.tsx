@@ -38,9 +38,9 @@ export default function CheckoutPage() {
   if (cart.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-white">Your Cart is Empty</h2>
-        <p className="text-xs text-slate-400">Please add items to your cart before proceeding to checkout.</p>
-        <Link href="/products" className="inline-block bg-emerald-500 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Your Cart is Empty</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Please add items to your cart before proceeding to checkout.</p>
+        <Link href="/products" className="inline-block bg-emerald-600 text-white dark:text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs">
           Browse Products
         </Link>
       </div>
@@ -128,12 +128,12 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header & Step Indicator */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
             {currentStep === 'DETAILS' ? 'Checkout & Shipping Info' : 'Select Payment Method'}
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {currentStep === 'DETAILS'
               ? 'Enter your delivery address and contact details to proceed.'
               : 'Choose Cash on Delivery or Pay Online via UPI QR Code.'}
@@ -141,19 +141,19 @@ export default function CheckoutPage() {
         </div>
 
         {/* Step Indicator */}
-        <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-2 rounded-2xl text-xs w-fit">
-          <div className={`px-3 py-1.5 rounded-xl font-bold ${currentStep === 'DETAILS' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
+        <div className="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl text-xs w-fit shadow-xs">
+          <div className={`px-3 py-1.5 rounded-xl font-bold ${currentStep === 'DETAILS' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
             1. Details
           </div>
-          <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
-          <div className={`px-3 py-1.5 rounded-xl font-bold ${currentStep === 'PAYMENT' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
+          <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+          <div className={`px-3 py-1.5 rounded-xl font-bold ${currentStep === 'PAYMENT' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
             2. Payment
           </div>
         </div>
       </div>
 
       {errorMsg && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-2xl text-xs font-semibold">
+        <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 p-4 rounded-2xl text-xs font-semibold">
           ⚠️ {errorMsg}
         </div>
       )}
@@ -164,19 +164,19 @@ export default function CheckoutPage() {
           {/* Left Column: Delivery Details & Order Type */}
           <div className="lg:col-span-2 space-y-6">
             {/* Order Type Toggle */}
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-              <h3 className="font-extrabold text-base text-white">1. Select Order Type</h3>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs dark:shadow-xl">
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white">1. Select Order Type</h3>
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => setDeliveryType('Home Delivery')}
                   className={`p-4 rounded-2xl border text-left flex items-start gap-3 transition-all ${
                     deliveryType === 'Home Delivery'
-                      ? 'bg-emerald-500/10 border-emerald-500 text-white'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
-                  <div className={`p-2 rounded-xl ${deliveryType === 'Home Delivery' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800'}`}>
+                  <div className={`p-2 rounded-xl ${deliveryType === 'Home Delivery' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950' : 'bg-slate-200 dark:bg-slate-800'}`}>
                     <Home className="w-5 h-5" />
                   </div>
                   <div>
@@ -190,11 +190,11 @@ export default function CheckoutPage() {
                   onClick={() => setDeliveryType('Shop Pickup')}
                   className={`p-4 rounded-2xl border text-left flex items-start gap-3 transition-all ${
                     deliveryType === 'Shop Pickup'
-                      ? 'bg-emerald-500/10 border-emerald-500 text-white'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
-                  <div className={`p-2 rounded-xl ${deliveryType === 'Shop Pickup' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800'}`}>
+                  <div className={`p-2 rounded-xl ${deliveryType === 'Shop Pickup' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950' : 'bg-slate-200 dark:bg-slate-800'}`}>
                     <Store className="w-5 h-5" />
                   </div>
                   <div>
@@ -206,165 +206,165 @@ export default function CheckoutPage() {
             </div>
 
             {/* Customer Details & Address Form */}
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-              <h3 className="font-extrabold text-base text-white">2. Customer Information</h3>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs dark:shadow-xl">
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white">2. Customer Information</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Customer Full Name *</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Customer Full Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Rahul Sharma"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-emerald-400 block mb-1">Mobile Phone Number (Mandatory) *</label>
+                  <label className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 block mb-1">Mobile Phone Number (Mandatory) *</label>
                   <input
                     type="tel"
                     required
                     placeholder="+91 98765 43210"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 text-emerald-400 font-bold rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-emerald-700 dark:text-emerald-400 font-bold rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                   />
-                  <span className="text-[10px] text-slate-400 mt-1 block">Digital invoice link will be sent to this mobile.</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">Digital invoice link will be sent to this mobile.</span>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Email Address (Optional)</label>
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Email Address (Optional)</label>
                   <input
                     type="email"
                     placeholder="your.email@example.com"
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
 
               {deliveryType === 'Home Delivery' ? (
-                <div className="border-t border-slate-800 pt-4 space-y-4">
-                  <h4 className="font-bold text-sm text-slate-200">Delivery Address</h4>
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-4">
+                  <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200">Delivery Address</h4>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">House / Flat / Street Address *</label>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">House / Flat / Street Address *</label>
                     <input
                       type="text"
                       required
                       placeholder="House #123, 2nd Floor, Main Street"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1">Area / Locality</label>
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Area / Locality</label>
                       <input
                         type="text"
                         value={area}
                         onChange={(e) => setArea(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1">City</label>
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">City</label>
                       <input
                         type="text"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1">Pincode *</label>
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Pincode *</label>
                       <input
                         type="text"
                         required
                         value={pincode}
                         onChange={(e) => setPincode(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">Delivery Instructions (Optional)</label>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Delivery Instructions (Optional)</label>
                     <input
                       type="text"
                       placeholder="e.g. Leave near security gate / Call on arrival"
                       value={instructions}
                       onChange={(e) => setInstructions(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="border-t border-slate-800 pt-4 bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
-                  <p className="font-bold text-white">Pickup Location:</p>
-                  <p className="flex items-center gap-1 text-emerald-400">
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-4 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                  <p className="font-bold text-slate-900 dark:text-white">Pickup Location:</p>
+                  <p className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                     <MapPin className="w-3.5 h-3.5" /> {shop.name}
                   </p>
                   <p>{shop.address}</p>
-                  <p className="text-slate-400 pt-1">Pickup Hours: {shop.opening_hours}</p>
+                  <p className="text-slate-500 dark:text-slate-400 pt-1">Pickup Hours: {shop.opening_hours}</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Right Column: Order Summary Card with Proceed to Payment Button */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl sticky top-24">
-            <h3 className="font-extrabold text-base text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-emerald-400" /> Order Summary
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs dark:shadow-xl sticky top-24">
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Order Summary
             </h3>
 
             {/* Cart Items List */}
             <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
               {cart.map((item) => (
-                <div key={item.product.id} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-800/60">
+                <div key={item.product.id} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-200 dark:border-slate-800/60">
                   <div className="flex items-center gap-2.5">
-                    <img src={item.product.image_url} alt={item.product.name} className="w-9 h-9 rounded-lg object-cover bg-slate-950 border border-slate-800" />
+                    <img src={item.product.image_url} alt={item.product.name} className="w-9 h-9 rounded-lg object-cover bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800" />
                     <div>
-                      <p className="font-bold text-white line-clamp-1">{item.product.name}</p>
-                      <span className="text-[10px] text-slate-400">Qty: {item.quantity} x ₹{item.product.selling_price}</span>
+                      <p className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.product.name}</p>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Qty: {item.quantity} x ₹{item.product.selling_price}</span>
                     </div>
                   </div>
-                  <span className="font-bold text-emerald-400">₹{item.product.selling_price * item.quantity}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{item.product.selling_price * item.quantity}</span>
                 </div>
               ))}
             </div>
 
             {/* Price Calculations */}
-            <div className="space-y-2 text-xs border-t border-slate-800 pt-3">
-              <div className="flex justify-between text-slate-400">
+            <div className="space-y-2 text-xs border-t border-slate-200 dark:border-slate-800 pt-3">
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
                 <span>Items Subtotal</span>
-                <span className="text-white font-semibold">₹{subtotal}</span>
+                <span className="text-slate-900 dark:text-white font-semibold">₹{subtotal}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
                 <span>Delivery Charge</span>
-                <span className="text-emerald-400 font-semibold">{deliveryCharge > 0 ? `+₹${deliveryCharge}` : 'FREE'}</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{deliveryCharge > 0 ? `+₹${deliveryCharge}` : 'FREE'}</span>
               </div>
-              <div className="flex justify-between text-base font-extrabold text-white pt-2 border-t border-slate-800">
+              <div className="flex justify-between text-base font-extrabold text-slate-900 dark:text-white pt-2 border-t border-slate-200 dark:border-slate-800">
                 <span>Total Amount</span>
-                <span className="text-emerald-400">₹{totalAmount}</span>
+                <span className="text-emerald-600 dark:text-emerald-400">₹{totalAmount}</span>
               </div>
             </div>
 
             {/* PROCEED TO PAYMENT BUTTON */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-sm transition-all hover:scale-102"
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white dark:text-slate-950 font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-sm transition-all hover:scale-102"
             >
               Proceed to Payment <ArrowRight className="w-5 h-5" />
             </button>
 
             <p className="text-[10px] text-slate-500 text-center flex items-center justify-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Secure checkout & 100% verified shop
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Secure checkout & 100% verified shop
             </p>
           </div>
         </form>
@@ -376,14 +376,14 @@ export default function CheckoutPage() {
           <button
             type="button"
             onClick={() => setCurrentStep('DETAILS')}
-            className="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl transition-all"
+            className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Delivery Details
           </button>
 
           {/* Payment Method Selector */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl">
-            <h3 className="font-extrabold text-lg text-white">Select Payment Method</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs dark:shadow-xl">
+            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Select Payment Method</h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Option 1: Cash on Delivery */}
@@ -392,18 +392,18 @@ export default function CheckoutPage() {
                 onClick={() => setPaymentMethod('Cash')}
                 className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all ${
                   paymentMethod === 'Cash'
-                    ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white shadow-lg shadow-emerald-500/10'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
-                <div className={`p-3 rounded-2xl ${paymentMethod === 'Cash' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
+                <div className={`p-3 rounded-2xl ${paymentMethod === 'Cash' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>
                   <Banknote className="w-6 h-6" />
                 </div>
                 <div>
                   <h4 className="font-extrabold text-base">Cash on Delivery (COD)</h4>
                   <p className="text-xs opacity-80 mt-1">Pay in cash when order is delivered to your doorstep or collected at shop.</p>
                   {paymentMethod === 'Cash' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-extrabold mt-2 bg-emerald-500/20 px-2.5 py-0.5 rounded-md border border-emerald-500/30">
+                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold mt-2 bg-emerald-100 dark:bg-emerald-500/20 px-2.5 py-0.5 rounded-md border border-emerald-300 dark:border-emerald-500/30">
                       <Check className="w-3 h-3" /> Selected
                     </span>
                   )}
@@ -416,18 +416,18 @@ export default function CheckoutPage() {
                 onClick={() => setPaymentMethod('UPI')}
                 className={`p-5 rounded-2xl border text-left flex items-start gap-4 transition-all ${
                   paymentMethod === 'UPI'
-                    ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500 text-slate-900 dark:text-white shadow-lg shadow-emerald-500/10'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
-                <div className={`p-3 rounded-2xl ${paymentMethod === 'UPI' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>
+                <div className={`p-3 rounded-2xl ${paymentMethod === 'UPI' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>
                   <QrCode className="w-6 h-6" />
                 </div>
                 <div>
                   <h4 className="font-extrabold text-base">Pay via UPI QR Code</h4>
                   <p className="text-xs opacity-80 mt-1">Scan QR code using GPay, PhonePe, Paytm, or any UPI payment app.</p>
                   {paymentMethod === 'UPI' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-extrabold mt-2 bg-emerald-500/20 px-2.5 py-0.5 rounded-md border border-emerald-500/30">
+                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold mt-2 bg-emerald-100 dark:bg-emerald-500/20 px-2.5 py-0.5 rounded-md border border-emerald-300 dark:border-emerald-500/30">
                       <Check className="w-3 h-3" /> Selected
                     </span>
                   )}
@@ -437,25 +437,25 @@ export default function CheckoutPage() {
 
             {/* IF UPI IS SELECTED: SHOW QR SCANNER & UTR ENTRY */}
             {paymentMethod === 'UPI' && (
-              <div className="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-6 text-center animate-fade-in">
+              <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl space-y-6 text-center animate-fade-in">
                 <div className="space-y-1">
-                  <h4 className="font-extrabold text-sm text-white">Scan & Pay ₹{totalAmount} via Any UPI App</h4>
-                  <p className="text-xs text-slate-400">Open GPay, PhonePe, Paytm, or BHIM to scan official shop QR code.</p>
+                  <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">Scan & Pay ₹{totalAmount} via Any UPI App</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Open GPay, PhonePe, Paytm, or BHIM to scan official shop QR code.</p>
                 </div>
 
-                <div className="bg-white p-3 rounded-2xl w-52 h-52 mx-auto shadow-inner border flex items-center justify-center">
+                <div className="bg-white p-3 rounded-2xl w-52 h-52 mx-auto shadow-inner border border-slate-200 flex items-center justify-center">
                   <img src={shop.qr_code_url} alt="Shop UPI QR Code" className="w-full h-full object-contain" />
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[11px] text-slate-400 block">Shop Official UPI ID</span>
-                  <code className="text-sm font-extrabold text-emerald-400 bg-slate-900 px-4 py-1.5 rounded-xl border border-slate-800 block w-fit mx-auto">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Shop Official UPI ID</span>
+                  <code className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 bg-white dark:bg-slate-900 px-4 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 block w-fit mx-auto shadow-xs">
                     {shop.upi_id}
                   </code>
                 </div>
 
-                <div className="text-left max-w-md mx-auto space-y-2 pt-2 border-t border-slate-900">
-                  <label className="text-xs font-semibold text-slate-300 block">
+                <div className="text-left max-w-md mx-auto space-y-2 pt-2 border-t border-slate-200 dark:border-slate-900">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                     UPI Transaction / UTR Ref ID (Optional)
                   </label>
                   <input
@@ -463,20 +463,20 @@ export default function CheckoutPage() {
                     placeholder="e.g. 984329104829"
                     value={paymentRef}
                     onChange={(e) => setPaymentRef(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-4 py-2.5 text-xs focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
             )}
 
             {/* ORDER TOTAL SUMMARY & SUBMIT BUTTON */}
-            <div className="border-t border-slate-800 pt-6 space-y-4">
-              <div className="flex items-center justify-between bg-slate-950 p-4 rounded-2xl border border-slate-800">
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-6 space-y-4">
+              <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div>
-                  <span className="text-xs text-slate-400">Total Payable Amount</span>
-                  <p className="text-2xl font-black text-emerald-400">₹{totalAmount}</p>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Total Payable Amount</span>
+                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">₹{totalAmount}</p>
                 </div>
-                <span className="text-xs font-bold text-slate-300 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
                   Method: {paymentMethod === 'Cash' ? 'Cash on Delivery' : 'Online UPI'}
                 </span>
               </div>
@@ -484,7 +484,7 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-base transition-all hover:scale-102"
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white dark:text-slate-950 font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-base transition-all hover:scale-102"
               >
                 {isSubmitting ? (
                   'Processing Order...'
@@ -500,7 +500,7 @@ export default function CheckoutPage() {
               </button>
 
               <p className="text-[10px] text-slate-500 text-center flex items-center justify-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> 100% verified & secure store order processing
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> 100% verified & secure store order processing
               </p>
             </div>
           </div>

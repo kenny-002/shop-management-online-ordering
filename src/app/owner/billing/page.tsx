@@ -11,15 +11,11 @@ import {
   Trash2,
   Printer,
   QrCode,
-  Check,
   Send,
-  Phone,
   Smartphone,
   CheckCircle2,
   Loader2,
-  MessageSquare,
   History,
-  FileText,
   AlertTriangle,
   ExternalLink,
   Download,
@@ -178,32 +174,6 @@ Thank you for shopping with us! 🙏`;
     }
   };
 
-  // Dispatch Bill via Server API
-  const handleApiDispatch = async (billObj: Bill, method: DeliveryMethod) => {
-    setIsSending(true);
-    setDispatchResult(null);
-
-    const res = await dispatchBillNotification(billObj, method);
-    setIsSending(false);
-
-    if (res.status === 'NOT_CONFIGURED') {
-      setDispatchResult({
-        success: false,
-        status: 'NOT_CONFIGURED',
-        error: 'Mobile bill delivery is not configured. Please configure WhatsApp/SMS in Settings.',
-      });
-    } else if (res.success) {
-      setDispatchResult({
-        success: true,
-        status: res.status,
-        message: `✅ Bill sent successfully to customer (${billObj.customer_mobile || customerPhone}).`,
-      });
-    } else {
-      // If API dispatch fails (e.g. Fast2SMS error), offer manual WhatsApp opening automatically
-      handleManualWhatsApp(billObj);
-    }
-  };
-
   const handleGenerateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (billCart.length === 0) return;
@@ -257,21 +227,21 @@ Thank you for shopping with us! 🙏`;
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs dark:shadow-xl">
         <div>
-          <h1 className="text-2xl font-extrabold text-white">Point of Sale (POS) Billing Terminal</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Point of Sale (POS) Billing Terminal</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Tap items to create counter invoices (`INV-1001`) and send digital bills directly to customer mobile numbers.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Tab Toggle */}
-          <div className="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs">
+          <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
             <button
               onClick={() => setActiveTab('terminal')}
               className={`px-4 py-2 rounded-xl font-bold transition-all ${
-                activeTab === 'terminal' ? 'bg-emerald-600 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
+                activeTab === 'terminal' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               POS Terminal
@@ -279,7 +249,7 @@ Thank you for shopping with us! 🙏`;
             <button
               onClick={() => setActiveTab('history')}
               className={`px-4 py-2 rounded-xl font-bold flex items-center gap-1.5 transition-all ${
-                activeTab === 'history' ? 'bg-emerald-600 text-slate-950 shadow' : 'text-slate-400 hover:text-white'
+                activeTab === 'history' ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <History className="w-3.5 h-3.5" /> Bill History
@@ -288,7 +258,7 @@ Thank you for shopping with us! 🙏`;
 
           <button
             onClick={() => setShowQRModal(true)}
-            className="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold px-4 py-2.5 rounded-2xl text-xs flex items-center gap-2"
+            className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 font-bold px-4 py-2.5 rounded-2xl text-xs flex items-center gap-2"
           >
             <QrCode className="w-4 h-4" /> Store UPI QR
           </button>
@@ -297,27 +267,27 @@ Thank you for shopping with us! 🙏`;
 
       {/* DISPATCH STATUS ALERTS */}
       {isSending && (
-        <div className="bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border border-emerald-500/50 p-4 rounded-2xl text-xs font-bold text-emerald-300 flex items-center gap-3 animate-pulse shadow-lg">
-          <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />
+        <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-300 dark:border-emerald-500/50 p-4 rounded-2xl text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-3 animate-pulse shadow-xs">
+          <Loader2 className="w-5 h-5 animate-spin text-emerald-600 dark:text-emerald-400" />
           <span>Sending digital bill to customer mobile (+91 {customerPhone})...</span>
         </div>
       )}
 
       {dispatchResult && !isSending && (
         <div
-          className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xl ${
+          className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs dark:shadow-xl ${
             dispatchResult.success
-              ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300'
+              ? 'bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300'
               : dispatchResult.status === 'NOT_CONFIGURED'
-              ? 'bg-amber-950/80 border border-amber-500/50 text-amber-300'
-              : 'bg-red-950/80 border border-red-500/50 text-red-300'
+              ? 'bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-500/50 text-amber-800 dark:text-amber-300'
+              : 'bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-500/50 text-red-800 dark:text-red-300'
           }`}
         >
           <div className="flex items-center gap-2">
             {dispatchResult.success ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             ) : (
-              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
             )}
             <span>{dispatchResult.message || dispatchResult.error}</span>
           </div>
@@ -344,7 +314,7 @@ Thank you for shopping with us! 🙏`;
                 placeholder="Search products for quick counter billing..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 text-slate-100 placeholder-slate-400 text-xs rounded-2xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs rounded-2xl pl-10 pr-4 py-3 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 shadow-xs"
               />
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             </div>
@@ -359,15 +329,15 @@ Thank you for shopping with us! 🙏`;
                     disabled={isOut}
                     className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all ${
                       isOut
-                        ? 'bg-slate-950 border-slate-900 text-slate-600 opacity-50 cursor-not-allowed'
-                        : 'bg-slate-900 hover:bg-slate-800 border-slate-800 hover:border-emerald-500/50 text-white shadow-md'
+                        ? 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-900 text-slate-400 opacity-50 cursor-not-allowed'
+                        : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 text-slate-900 dark:text-white shadow-xs'
                     }`}
                   >
-                    <img src={prod.image_url} alt={prod.name} className="w-12 h-12 rounded-xl object-cover bg-slate-950 shrink-0" />
+                    <img src={prod.image_url} alt={prod.name} className="w-12 h-12 rounded-xl object-cover bg-slate-100 dark:bg-slate-950 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <h4 className="font-bold text-xs truncate">{prod.name}</h4>
-                      <p className="text-xs text-emerald-400 font-extrabold mt-0.5">₹{prod.selling_price}</p>
-                      <span className="text-[10px] text-slate-400">{prod.stock_quantity} left</span>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold mt-0.5">₹{prod.selling_price}</p>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">{prod.stock_quantity} left</span>
                     </div>
                   </button>
                 );
@@ -376,28 +346,28 @@ Thank you for shopping with us! 🙏`;
           </div>
 
           {/* Right Column: Billing Counter Summary & Invoice Generation */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xl sticky top-24">
-            <h3 className="font-extrabold text-base text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-emerald-400" /> Current Bill Cart ({billCart.length})
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs dark:shadow-xl sticky top-24">
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Current Bill Cart ({billCart.length})
             </h3>
 
             {/* Customer Inputs with Indian Phone Validation */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="text-[10px] text-slate-400 font-bold block mb-1">Customer Name</label>
+                <label className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block mb-1">Customer Name</label>
                 <input
                   type="text"
                   required
                   placeholder="Walk-in Customer"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-hidden focus:ring-2 focus:ring-emerald-500 font-medium"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-emerald-400 font-bold block mb-1 flex items-center gap-1">
-                  <Smartphone className="w-3 h-3 text-emerald-400" /> Customer Mobile *
+                <label className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mb-1 flex items-center gap-1">
+                  <Smartphone className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Customer Mobile *
                 </label>
                 <input
                   type="tel"
@@ -407,39 +377,39 @@ Thank you for shopping with us! 🙏`;
                     setCustomerPhone(e.target.value);
                     if (phoneError) setPhoneError('');
                   }}
-                  className={`w-full bg-slate-950 border text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 font-bold text-emerald-400 ${
-                    phoneError ? 'border-red-500 focus:ring-red-500' : 'border-slate-700 focus:ring-emerald-500'
+                  className={`w-full bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-hidden focus:ring-2 font-bold text-emerald-700 dark:text-emerald-400 ${
+                    phoneError ? 'border-red-500 focus:ring-red-500' : 'border-slate-200 dark:border-slate-700 focus:ring-emerald-500'
                   }`}
                 />
               </div>
             </div>
 
-            {phoneError && <p className="text-[10px] text-red-400 font-bold">{phoneError}</p>}
+            {phoneError && <p className="text-[10px] text-red-600 dark:text-red-400 font-bold">{phoneError}</p>}
 
             {/* Cart Itemized List */}
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {billCart.length === 0 ? (
-                <p className="text-xs text-slate-500 text-center py-4">Tap products on the left to add items to bill.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-500 text-center py-4">Tap products on the left to add items to bill.</p>
               ) : (
                 billCart.map(({ product, quantity }) => (
-                  <div key={product.id} className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                  <div key={product.id} className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
                     <div className="min-w-0 flex-1 pr-2">
-                      <p className="font-bold text-white truncate">{product.name}</p>
-                      <span className="text-[10px] text-slate-400">₹{product.selling_price} each</span>
+                      <p className="font-bold text-slate-900 dark:text-white truncate">{product.name}</p>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">₹{product.selling_price} each</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg">
-                        <button onClick={() => updateBillQty(product.id, quantity - 1)} className="px-1.5 py-0.5 text-white font-bold">
+                      <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <button onClick={() => updateBillQty(product.id, quantity - 1)} className="px-1.5 py-0.5 text-slate-800 dark:text-white font-bold">
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="px-2 font-bold text-emerald-400">{quantity}</span>
-                        <button onClick={() => updateBillQty(product.id, quantity + 1)} className="px-1.5 py-0.5 text-white font-bold">
+                        <span className="px-2 font-bold text-emerald-600 dark:text-emerald-400">{quantity}</span>
+                        <button onClick={() => updateBillQty(product.id, quantity + 1)} className="px-1.5 py-0.5 text-slate-800 dark:text-white font-bold">
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
-                      <span className="font-bold text-white min-w-[45px] text-right">₹{product.selling_price * quantity}</span>
-                      <button onClick={() => removeFromBillCart(product.id)} className="text-slate-500 hover:text-red-400">
+                      <span className="font-bold text-slate-900 dark:text-white min-w-[45px] text-right">₹{product.selling_price * quantity}</span>
+                      <button onClick={() => removeFromBillCart(product.id)} className="text-slate-400 hover:text-red-600 dark:hover:text-red-400">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -449,58 +419,58 @@ Thank you for shopping with us! 🙏`;
             </div>
 
             {/* Price Adjustments */}
-            <div className="space-y-2 border-t border-slate-800 pt-3 text-xs">
-              <div className="flex justify-between items-center text-slate-300">
+            <div className="space-y-2 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs">
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
                 <span>Subtotal</span>
-                <span className="font-bold text-white">₹{subtotal}</span>
+                <span className="font-bold text-slate-900 dark:text-white">₹{subtotal}</span>
               </div>
 
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
                 <span>Discount (₹)</span>
                 <input
                   type="number"
                   min="0"
                   value={discount}
                   onChange={(e) => setDiscount(Number(e.target.value))}
-                  className="w-20 bg-slate-950 border border-slate-700 text-right text-white rounded-lg px-2 py-1 text-xs"
+                  className="w-20 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-right text-slate-900 dark:text-white rounded-lg px-2 py-1 text-xs"
                 />
               </div>
 
-              <div className="flex justify-between items-center text-slate-300">
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
                 <span>Delivery Fee (₹)</span>
                 <input
                   type="number"
                   min="0"
                   value={deliveryCharge}
                   onChange={(e) => setDeliveryCharge(Number(e.target.value))}
-                  className="w-20 bg-slate-950 border border-slate-700 text-right text-white rounded-lg px-2 py-1 text-xs"
+                  className="w-20 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-right text-slate-900 dark:text-white rounded-lg px-2 py-1 text-xs"
                 />
               </div>
 
-              <div className="flex justify-between items-center text-slate-300 pt-1">
+              <div className="flex justify-between items-center text-slate-600 dark:text-slate-300 pt-1">
                 <span>Payment Method</span>
                 <select
                   value={paymentMethod}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPaymentMethod(e.target.value as 'Cash' | 'UPI' | 'Card' | 'Other')}
-                  className="bg-slate-950 border border-slate-700 text-white rounded-lg px-2 py-1 text-xs"
+                  className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg px-2 py-1 text-xs"
                 >
-                  <option value="Cash">Cash</option>
-                  <option value="UPI">UPI QR</option>
-                  <option value="Card">Credit/Debit Card</option>
-                  <option value="Other">Other</option>
+                  <option value="Cash" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Cash</option>
+                  <option value="UPI" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">UPI QR</option>
+                  <option value="Card" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Credit/Debit Card</option>
+                  <option value="Other" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Other</option>
                 </select>
               </div>
 
-              <div className="border-t border-slate-800 pt-2 flex justify-between items-baseline">
-                <span className="font-extrabold text-white text-base">Grand Total</span>
-                <span className="font-black text-2xl text-emerald-400">₹{grandTotal}</span>
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-2 flex justify-between items-baseline">
+                <span className="font-extrabold text-slate-900 dark:text-white text-base">Grand Total</span>
+                <span className="font-black text-2xl text-emerald-600 dark:text-emerald-400">₹{grandTotal}</span>
               </div>
             </div>
 
             <button
               onClick={handleGenerateInvoice}
               disabled={billCart.length === 0 || isSending}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-xs transition-all hover:scale-102 disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white dark:text-slate-950 font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-xs transition-all hover:scale-102 disabled:opacity-50"
             >
               {isSending ? (
                 <>
@@ -518,17 +488,17 @@ Thank you for shopping with us! 🙏`;
 
       {/* TAB 2: BILL HISTORY TABLE */}
       {activeTab === 'history' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 className="font-extrabold text-base text-white flex items-center gap-2">
-              <History className="w-4 h-4 text-emerald-400" /> POS Bill History & Delivery Status
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-xs dark:shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <History className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> POS Bill History & Delivery Status
             </h3>
-            <span className="text-xs text-slate-400">{bills.length} Bills Generated</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{bills.length} Bills Generated</span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+            <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="py-3 px-4 rounded-l-xl">Invoice No</th>
                   <th className="py-3 px-4">Customer Name</th>
@@ -540,36 +510,36 @@ Thank you for shopping with us! 🙏`;
                   <th className="py-3 px-4 rounded-r-xl text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {bills.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-8 text-slate-500">
+                    <td colSpan={8} className="text-center py-8 text-slate-500 dark:text-slate-500">
                       No bills generated yet. Use the POS Terminal to create invoices.
                     </td>
                   </tr>
                 ) : (
                   bills.map((bill) => (
-                    <tr key={bill.id} className="hover:bg-slate-800/50 transition-colors">
-                      <td className="py-3 px-4 font-mono font-extrabold text-emerald-400">{bill.invoice_number || bill.bill_number}</td>
-                      <td className="py-3 px-4 font-bold text-white">{bill.customer_name}</td>
-                      <td className="py-3 px-4 font-mono text-slate-300">{bill.customer_mobile || bill.customer_phone || 'N/A'}</td>
-                      <td className="py-3 px-4 text-right font-black text-white">₹{bill.total}</td>
+                    <tr key={bill.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-3 px-4 font-mono font-extrabold text-emerald-600 dark:text-emerald-400">{bill.invoice_number || bill.bill_number}</td>
+                      <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{bill.customer_name}</td>
+                      <td className="py-3 px-4 font-mono text-slate-600 dark:text-slate-300">{bill.customer_mobile || bill.customer_phone || 'N/A'}</td>
+                      <td className="py-3 px-4 text-right font-black text-slate-900 dark:text-white">₹{bill.total}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className="bg-slate-800 text-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-200 dark:border-slate-700">
                           {bill.payment_method}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-400">{new Date(bill.created_at).toLocaleDateString()}</td>
+                      <td className="py-3 px-4 text-slate-500 dark:text-slate-400">{new Date(bill.created_at).toLocaleDateString()}</td>
                       <td className="py-3 px-4 text-center">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
                             bill.invoice_delivery_status === 'DELIVERED'
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30'
                               : bill.invoice_delivery_status === 'SENT'
-                              ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                              ? 'bg-teal-100 dark:bg-teal-500/20 text-teal-800 dark:text-teal-400 border border-teal-300 dark:border-teal-500/30'
                               : bill.invoice_delivery_status === 'FAILED'
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              ? 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400 border border-red-300 dark:border-red-500/30'
+                              : 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30'
                           }`}
                         >
                           {bill.invoice_delivery_status || 'PENDING'}
@@ -580,14 +550,14 @@ Thank you for shopping with us! 🙏`;
                           <Link
                             href={bill.invoice_url || `/invoice/${bill.invoice_token}`}
                             target="_blank"
-                            className="bg-slate-800 hover:bg-slate-700 text-emerald-400 p-1.5 rounded-lg border border-slate-700"
+                            className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700"
                             title="View Secure Digital Bill"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </Link>
                           <button
                             onClick={() => handleManualWhatsApp(bill)}
-                            className="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 p-1.5 rounded-lg border border-emerald-500/30"
+                            className="bg-emerald-100 dark:bg-emerald-600/20 hover:bg-emerald-200 dark:hover:bg-emerald-600/40 text-emerald-800 dark:text-emerald-400 p-1.5 rounded-lg border border-emerald-300 dark:border-emerald-500/30"
                             title="Send Digital Invoice via WhatsApp Web"
                           >
                             <Send className="w-3.5 h-3.5" />
@@ -606,7 +576,7 @@ Thank you for shopping with us! 🙏`;
       {/* GENERATED INVOICE PREVIEW MODAL */}
       {generatedInvoice && (
         <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div id="pos-invoice-receipt-card" className="bg-white text-slate-900 rounded-3xl max-w-lg w-full p-8 space-y-6 shadow-2xl overflow-y-auto max-h-[90vh] print:p-0 print:shadow-none font-mono">
+          <div id="pos-invoice-receipt-card" className="bg-white text-slate-900 rounded-3xl max-w-lg w-full p-8 space-y-6 shadow-2xl overflow-y-auto max-h-[90vh] print:p-0 print:shadow-none font-mono border border-slate-200">
             {/* Header */}
             <div className="text-center border-b border-slate-300 pb-4 space-y-1">
               <h2 className="text-2xl font-black tracking-tight">{shop.name}</h2>
@@ -664,17 +634,17 @@ Thank you for shopping with us! 🙏`;
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3 print:hidden pt-4 border-t font-sans">
+            <div className="space-y-3 print:hidden pt-4 border-t border-slate-200 font-sans">
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleManualWhatsApp(generatedInvoice)}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <Send className="w-4 h-4" /> 💬 Send via WhatsApp Web
                 </button>
                 <button
                   onClick={() => handleDownloadBillImage('pos-invoice-receipt-card', `Bill_${generatedInvoice.invoice_number || generatedInvoice.bill_number}.png`)}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <ImageIcon className="w-4 h-4" /> 🖼️ Save Bill Image (PNG)
                 </button>
@@ -709,15 +679,15 @@ Thank you for shopping with us! 🙏`;
       {/* UPI QR COUNTER MODAL */}
       {showQRModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
-            <h3 className="font-extrabold text-base text-white">Store Counter UPI QR Code</h3>
-            <div className="bg-white p-3 rounded-2xl w-48 h-48 mx-auto shadow-inner flex items-center justify-center">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Store Counter UPI QR Code</h3>
+            <div className="bg-white p-3 rounded-2xl w-48 h-48 mx-auto shadow-inner border border-slate-200 flex items-center justify-center">
               <img src={shop.qr_code_url} alt="Shop QR Code" className="w-full h-full object-contain" />
             </div>
-            <p className="text-xs text-emerald-400 font-extrabold font-mono">{shop.upi_id}</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold font-mono">{shop.upi_id}</p>
             <button
               onClick={() => setShowQRModal(false)}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs"
+              className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs"
             >
               Close QR Preview
             </button>
